@@ -32,7 +32,20 @@ class _base:
         raise NotImplementedError
 
     def cast_to(self, other):
-        raise NotImplementedError
+        assert other in types
+
+        if isinstance(self, other):
+            return self.copy()
+
+        return other(size=self.size)
+
+    def copy(self):
+        n = self.__class__(size=self.size)
+        n.value = tuple([np.array(a, copy=True) for a in self.value])
+        return n
+
+    def __len__(self):
+        return self.size
 
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
@@ -46,6 +59,18 @@ class obsl(_base):
 
         self.value = (_belief, _disbelief, _uncertainty, _apriori)
 
+    def cast_to(self, other):
+        n = _base.cast_to(self, other)
+        if isinstance(n, obsl):
+            return n
+
+        if isinstance(n, ebsl):
+            raise NotImplementedError
+        elif isinstance(n, tbsl):
+            raise NotImplementedError
+
+        return None
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -57,6 +82,18 @@ class tbsl(_base):
 
         self.value = (_truth, _confidence, _apriori)
 
+    def cast_to(self, other):
+        n = _base.cast_to(self, other)
+        if isinstance(n, tbsl):
+            return n
+
+        if isinstance(n, ebsl):
+            raise NotImplementedError
+        elif isinstance(n, obsl):
+            raise NotImplementedError
+
+        return None
+
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
@@ -67,5 +104,17 @@ class ebsl(_base):
         _apriori = np.ones(self.size) * apriori
 
         self.value = (_positive, _negative, _apriori)
+
+    def cast_to(self, other):
+        n = _base.cast_to(self, other)
+        if isinstance(n, ebsl):
+            return n
+
+        if isinstance(n, tbsl):
+            raise NotImplementedError
+        elif isinstance(n, obsl):
+            raise NotImplementedError
+
+        return None
 
 types = [obsl, tbsl, ebsl]
