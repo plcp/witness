@@ -13,14 +13,14 @@ class _base:
 
     '''
 
-    def __init__(self, value=None, size=None):
-        if value is not None:
-            assert value in types
+    def __init__(self, other=None, size=None):
+        if other is not None:
+            assert other.__class__ in types
             if size is not None:
                 warnings.warn('Size given but ignored')
 
-            self.size = len(value)
-            self.value = value.cast_to(self.__class__).value
+            self.size = len(other)
+            self.value = other.cast_to(self.__class__).value
         else:
             assert size is not None
             assert isinstance(size, int) and size > 0
@@ -38,9 +38,6 @@ class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
     '''
-    def __init__(self, value=None, size=None):
-        _base.__init__(self, value, size)
-
     def reset(self, apriori=0.5):
         _belief = np.zeros(self.size)
         _disbelief = np.zeros(self.size)
@@ -53,9 +50,6 @@ class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
     '''
-    def __init__(self, value=None, size=None):
-        _base.__init__(self, value, size)
-
     def reset(self, apriori=0.0):
         _truth = np.zeros(self.size)
         _confidence = np.zeros(self.size)
@@ -67,9 +61,6 @@ class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
     '''
-    def __init__(self, value=None, size=None):
-        _base.__init__(self, value, size)
-
     def reset(self, apriori=0.5):
         _positive = np.zeros(self.size)
         _negative = np.zeros(self.size)
