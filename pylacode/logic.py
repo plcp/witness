@@ -12,7 +12,6 @@ class _base:
     '''Base class for logic types
 
     '''
-
     def __init__(self, other=None, size=None):
         if other is not None:
             assert other.__class__ in types
@@ -51,6 +50,8 @@ class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
     '''
+    value_names = ['belief', 'disbelief', 'uncertainty', 'apriori']
+
     def reset(self, apriori=0.5):
         _belief = np.zeros(self.size)
         _disbelief = np.zeros(self.size)
@@ -75,6 +76,8 @@ class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
     '''
+    value_names = ['truth', 'confidence', 'apriori']
+
     def reset(self, apriori=0.0):
         _truth = np.zeros(self.size)
         _confidence = np.zeros(self.size)
@@ -98,6 +101,8 @@ class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
     '''
+    value_names = ['positive', 'negative', 'apriori']
+
     def reset(self, apriori=0.5):
         _positive = np.zeros(self.size)
         _negative = np.zeros(self.size)
@@ -118,3 +123,11 @@ class ebsl(_base):
         return None
 
 types = [obsl, tbsl, ebsl]
+
+for vtype in types:
+    for i, name in enumerate(vtype.value_names):
+        def _stub(self, idx=i):
+            return self.value[idx]
+        _stub.__name__ = name
+
+        setattr(vtype, name, property(_stub))
