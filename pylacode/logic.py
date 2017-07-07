@@ -123,11 +123,20 @@ class ebsl(_base):
         return None
 
 types = [obsl, tbsl, ebsl]
-
 for vtype in types:
     for i, name in enumerate(vtype.value_names):
-        def _stub(self, idx=i):
+        def _fget(self, idx=i):
             return self.value[idx]
-        _stub.__name__ = name
 
-        setattr(vtype, name, property(_stub))
+        def _fset(self, array, idx=i):
+            assert isinstance(array, np.ndarray)
+            assert len(self) == len(array)
+
+            self.value = (tuple()
+                + self.value[:idx]
+                + (array,)
+                + self.value[idx + 1:])
+
+        _fget.__name__ = '_fget_{}'.format(name)
+        _fset.__name__ = '_fset_{}'.format(name)
+        setattr(vtype, name, property(_fget, _fset))
