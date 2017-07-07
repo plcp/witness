@@ -13,7 +13,29 @@ class _base:
 
     '''
     def __init__(self, other=None, size=None):
-        if other is not None:
+        if isinstance(other, tuple):
+            if not len(other) == len(self.value_names):
+                raise AssertionError(
+                    'Expected a tuple of lenght {}'.format(
+                    len(self.value_names)))
+
+            s = len(other[0])
+            for v in other:
+                if not isinstance(v, np.ndarray):
+                    raise AssertionError(
+                        'Expecting numpy.ndarray: {} in {}'.format(
+                        v, other))
+
+                if not s == len(v):
+                    raise AssertionError(
+                        'Expecting uniform lenght: {}'.format(other))
+
+            if size is not None:
+                warnings.warn('Size given but ignored')
+
+            self.size = len(other[0])
+            self.value = other
+        elif other is not None:
             assert other.__class__ in types
             if size is not None:
                 warnings.warn('Size given but ignored')
@@ -39,9 +61,8 @@ class _base:
         return other(size=self.size)
 
     def copy(self):
-        n = self.__class__(size=self.size)
-        n.value = tuple([np.array(a, copy=True) for a in self.value])
-        return n
+        n = tuple([np.array(a, copy=True) for a in self.value])
+        return self.__class__(n)
 
     def __len__(self):
         return self.size

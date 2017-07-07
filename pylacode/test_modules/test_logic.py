@@ -25,6 +25,12 @@ def run():
             setattr(x, name, n)
             assert n is x.value[i]
 
+    for vtype in test_types:
+        n = [np.ones(4) for _ in range(0, len(vtype.value_names))]
+        x = vtype(tuple(n))
+        for a, b in zip(x.value, n):
+            assert a is b
+
     for op in test_ops:
         assert _check_op(op)
 
