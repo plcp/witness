@@ -52,6 +52,10 @@ class _base:
     def reset(self):
         raise NotImplementedError
 
+    @staticmethod
+    def uniform(size):
+        raise NotImplementedError
+
     def cast_to(self, other):
         assert other in types
 
@@ -81,6 +85,20 @@ class obsl(_base):
 
         self.value = (_belief, _disbelief, _uncertainty, _apriori)
 
+    @staticmethod
+    def uniform(size):
+        _uncertainty = np.random.uniform(size=size)
+        snd = np.random.uniform(high=(1.0 - _uncertainty), size=size)
+        trd = 1.0 - snd - _uncertainty
+
+        snd, trd = np.random.permutation((snd, trd))
+
+        _belief = snd
+        _disbelief = trd
+        _apriori = np.random.uniform(size=size)
+
+        return obsl((_belief, _disbelief, _uncertainty, _apriori))
+
     def cast_to(self, other):
         n = _base.cast_to(self, other)
         if isinstance(n, obsl):
@@ -98,6 +116,14 @@ class tbsl(_base):
 
     '''
     value_names = ['truth', 'confidence', 'apriori']
+
+    @staticmethod
+    def uniform(size):
+        _confi = np.random.uniform(size=size)
+        _truth = np.random.uniform(low=-_confi, high=_confi, size=size)
+        _apriori = np.random.uniform(low=-1.0, high=1.0, size=size)
+
+        return tbsl((_truth, _confi, _apriori))
 
     def reset(self, apriori=0.0):
         _truth = np.zeros(self.size)
@@ -130,6 +156,14 @@ class ebsl(_base):
         _apriori = np.ones(self.size) * apriori
 
         self.value = (_positive, _negative, _apriori)
+
+    @staticmethod
+    def uniform(size, _min=0, _max=1e2):
+        _positive = np.random.randint(_min, _max, size=size)
+        _negative = np.random.randint(_min, _max, size=size)
+        _apriori = np.random.uniform(size=size)
+
+        return ebsl((_positive, _negative, _apriori))
 
     def cast_to(self, other):
         n = _base.cast_to(self, other)
