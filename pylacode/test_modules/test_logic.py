@@ -7,6 +7,12 @@ import sys
 test_types = pl.logic.types
 test_ops = ['__invert__']
 
+def _similar(a, b):
+    return np.allclose(a, b,
+        rtol=pl.logic.eq_rtol,
+        atol=pl.logic.eq_atol,
+        equal_nan=pl.logic.eq_nan)
+
 def run():
     for vtype in test_types:
         vtype(size=5)
@@ -54,34 +60,71 @@ def run():
 def _evaluate_op_with_vtype(op_name, vtype, values):
     op = getattr(vtype, op_name)
     _values = [vtype(value) for value in values]
-    return op(*_values)
+    return op(*_values), (op_name, vtype, values)
 
 def _evaluate_op_forall(op_name, values):
     results = []
+    reports = []
     for vtype in test_types:
-        results.append(_evaluate_op_with_vtype(op_name, vtype, values))
-    return results
+        result, report = _evaluate_op_with_vtype(op_name, vtype, values)
+        results.append(result)
+        reports.append(report)
+    return results, reports
 
 def _check_op_forall(op_name, values):
     results = []
+    reports = []
     for vtype in test_types:
-        results += _evaluate_op_forall(op_name, [vtype(v) for v in values])
+        resu, repo = _evaluate_op_forall(op_name, [vtype(v) for v in values])
+        results += resu
+        reports += repo
 
-    for result in results:
-        checks = [(result == other) for other in results]
+    for j, result in enumerate(results):
+        if isinstance(result, np.ndarray):
+            checks = [_similar(result, other) for other in results]
+        else:
+            checks = [(result == other) for other in results]
 
-        if not all([isinstance(c, bool) for c in checks]):
-            raise AssertionError("op == doesn't return booleans")
+        if isinstance(checks[0], np.ndarray):
+            checks = [c.all() for c in checks]
 
-        if not all(checks):
-            raise AssertionError("results differ")
+        for i, c in enumerate(checks):
+            error = None
+            if not isinstance(c, (bool, np.bool_)):
+                error = "Equality '==' doesn't return a proper boolean !"
+            elif not c:
+                error = 'Incoherent results !'
 
+            if error is not None:
+                expected = (_evaluate_op_with_vtype(*reports[j]), reports[j])
+                obtained = (_evaluate_op_with_vtype(*reports[i]), reports[i])
+
+                try:
+                    differ = abs(obtained[0][0] - expected[0][0])
+                    rerror = (pl.logic.eq_atol
+                        + pl.logic.eq_rtol * abs(expected[0][0]))
+                except BaseException:
+                    differ = 'Unavailable'
+
+                raise AssertionError(error +
+                    '\n\n >> Here is the failing test case:' +
+                    '\n\t{}'.format(obtained) +
+                    '\n\n >> Here is the expected result:' +
+                    '\n\t{}'.format(expected) +
+                    '\n\n >> Here is the error vs tolerance:' +
+                    '\n\t{}'.format(differ) +
+                    '\n\t{}'.format(rerror) +
+                    '\n')
     return True
 
 def _get_parameter_count(op):
     if sys.version_info < (3,):
-        return len(inspect.getargspec(op).args)
-    return len(inspect.signature(op).parameters)
+        spec = inspect.getargspec(op)
+        return len(spec.args) - len(spec.defaults)
+
+    spec = inspect.signature(op).parameters
+    args = [p for p in spec if spec[p].default is inspect._empty]
+    return len(args)
 
 def _check_op(op_name):
     vtypes = list(test_types)

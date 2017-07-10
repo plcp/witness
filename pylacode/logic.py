@@ -10,6 +10,11 @@ import numpy as np
 
 tbsl_cost = 2
 
+# Operator __eq__ constants
+eq_rtol = 1e-5 # relative tolerance
+eq_atol = 1e-8 # absolute tolerance
+eq_nan = False # is NaN equal to NaN ?
+
 class _base:
     '''Base class for logic types
 
@@ -78,7 +83,7 @@ class _base:
     def __len__(self):
         return self.size
 
-    def __eq__(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+    def __eq__(self, other, rtol=eq_rtol, atol=eq_atol, equal_nan=eq_nan):
         assert other.__class__ in types
 
         if not isinstance(other, self.__class__):
