@@ -71,6 +71,14 @@ class _base:
     def __len__(self):
         return self.size
 
+    def __eq__(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
+        assert isinstance(other, self.__class__)
+
+        return all([
+                np.allclose(a, b, rtol, atol, equal_nan)
+                for a, b in zip(self.value, other.value)])
+    equals = __eq__
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
