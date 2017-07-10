@@ -1,8 +1,11 @@
 import pylacode as pl
 import numpy as np
+import inspect
+import random
+import sys
 
 test_types = pl.logic.types
-test_ops = []
+test_ops = ['__invert__']
 
 def run():
     for vtype in test_types:
@@ -45,5 +48,50 @@ def run():
 
     for op in test_ops:
         assert _check_op(op)
+
+    return True
+
+def _evaluate_op_with_vtype(op_name, vtype, values):
+    op = getattr(vtype, op_name)
+    _values = [vtype(value) for value in values]
+    return op(*_values)
+
+def _evaluate_op_forall(op_name, values):
+    results = []
+    for vtype in test_types:
+        results.append(_evaluate_op_with_vtype(op_name, vtype, values))
+    return results
+
+def _check_op_forall(op_name, values):
+    results = []
+    for vtype in test_types:
+        results += _evaluate_op_forall(op_name, [vtype(v) for v in values])
+
+    for result in results:
+        checks = [(result == other) for other in results]
+
+        if not all([isinstance(c, bool) for c in checks]):
+            raise AssertionError("op == doesn't return booleans")
+
+        if not all(checks):
+            raise AssertionError("results differ")
+
+    return True
+
+def _get_parameter_count(op):
+    if sys.version_info < (3,):
+        return len(inspect.getargspec(op).args)
+    return len(inspect.signature(op).parameters)
+
+def _check_op(op_name):
+    vtypes = list(test_types)
+    random.shuffle(vtypes)
+
+    width = random.randint(2, 10)
+    for vtype in vtypes:
+        op = getattr(vtype, op_name)
+        nargs = _get_parameter_count(op)
+        args = [vtype.uniform(width) for _ in range(0, nargs)]
+        assert _check_op_forall(op_name, args)
 
     return True
