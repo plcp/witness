@@ -8,7 +8,8 @@ assert sys.version_info >= (2, 7)
 import warnings
 import numpy as np
 
-tbsl_cost = 2
+# Non-informative prior weight
+ebsl_prior = 2 # (ensure uniform Beta-distribution when « apriori == 0.5 »)
 
 # Operator __eq__ constants
 eq_rtol = 1e-5 # relative tolerance
@@ -129,7 +130,7 @@ class obsl(_base):
 
         return obsl((_belief, _disbelief, _uncertainty, _apriori))
 
-    def cast_to(self, other, cost=tbsl_cost):
+    def cast_to(self, other, prior=ebsl_prior):
         n = _base.cast_to(self, other)
         if isinstance(n, obsl):
             pass
@@ -140,7 +141,7 @@ class obsl(_base):
 
             n.value = (_truth, _confidence, _apriori)
         elif isinstance(n, ebsl):
-            norm = cost / self.uncertainty
+            norm = prior / self.uncertainty
             _positive = norm * self.belief
             _negative = norm * self.disbelief
 
@@ -177,7 +178,7 @@ class tbsl(_base):
 
         self.value = (_truth, _confidence, _apriori)
 
-    def cast_to(self, other, cost=tbsl_cost):
+    def cast_to(self, other, prior=ebsl_prior):
         n = _base.cast_to(self, other)
         if isinstance(n, tbsl):
             pass
@@ -190,7 +191,7 @@ class tbsl(_base):
             half = 1.0 / 2.0
             _apriori *= half
 
-            half_cst = half * cost
+            half_cst = half * prior
             _positive = _positive * half_cst - half_cst
             _negative = _negative * half_cst - half_cst
 
@@ -238,22 +239,22 @@ class ebsl(_base):
 
         return ebsl((_positive, _negative, _apriori))
 
-    def cast_to(self, other, cost=tbsl_cost):
+    def cast_to(self, other, prior=ebsl_prior):
         n = _base.cast_to(self, other)
         if isinstance(n, ebsl):
             pass
         if isinstance(n, tbsl):
-            norm = 1.0 / (self.positive + self.negative + cost)
+            norm = 1.0 / (self.positive + self.negative + prior)
             _truth = (self.positive - self.negative) * norm
-            _confidence = 1.0 - cost * norm
+            _confidence = 1.0 - prior * norm
             _apriori = 2 * self.apriori - 1
 
             n.value = (_truth, _confidence, _apriori)
         elif isinstance(n, obsl):
-            norm = 1.0 / (self.positive + self.negative + cost)
+            norm = 1.0 / (self.positive + self.negative + prior)
             _belief = self.positive * norm
             _disbelief = self.negative * norm
-            _uncertainty = cost * norm
+            _uncertainty = prior * norm
 
             n.value = (_belief, _disbelief, _uncertainty, self.apriori)
         return n
@@ -262,7 +263,7 @@ class ebsl(_base):
         return ebsl((self.negative, self.positive, 1.0 - self.apriori))
 
     @property
-    def probability(self, cost=tbsl_cost):
+    def probability(self, prior=ebsl_prior):
         return (self.positive + self.apriori * prior
             ) / (self.positive + self.negative + prior)
 
