@@ -14,6 +14,11 @@ class _base:
     '''Base class for logic types
 
     '''
+    aliases = (
+        ('__eq__', 'equals'),
+        ('__invert__', 'invert'),
+    )
+
     def __init__(self, other=None, size=None):
         if isinstance(other, tuple):
             if not len(other) == len(self.value_names):
@@ -82,14 +87,10 @@ class _base:
         return all([
                 np.allclose(a, b, rtol, atol, equal_nan)
                 for a, b in zip(self.value, other.value)])
-    equals = __eq__
 
     def __invert__(self):
         raise NotImplementedError
 
-    def invert(self):
-        self.invert = self.__invert__
-        return self.__invert__()
 
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
@@ -260,3 +261,8 @@ for vtype in types:
         _fget.__name__ = '_fget_{}'.format(name)
         _fset.__name__ = '_fset_{}'.format(name)
         setattr(vtype, name, property(_fget, _fset))
+
+for name, alias in _base.aliases:
+    for vtype in types:
+        op = getattr(vtype, name)
+        setattr(vtype, alias, op)
