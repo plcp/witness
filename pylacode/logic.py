@@ -8,6 +8,8 @@ assert sys.version_info >= (2, 7)
 import warnings
 import numpy as np
 
+tbsl_cost = 2
+
 class _base:
     '''Base class for logic types
 
@@ -72,7 +74,10 @@ class _base:
         return self.size
 
     def __eq__(self, other, rtol=1e-05, atol=1e-08, equal_nan=False):
-        assert isinstance(other, self.__class__)
+        assert other.__class__ in types
+
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
 
         return all([
                 np.allclose(a, b, rtol, atol, equal_nan)
@@ -107,17 +112,23 @@ class obsl(_base):
 
         return obsl((_belief, _disbelief, _uncertainty, _apriori))
 
-    def cast_to(self, other):
+    def cast_to(self, other, cost=tbsl_cost):
         n = _base.cast_to(self, other)
         if isinstance(n, obsl):
-            return n
-
-        if isinstance(n, ebsl):
-            raise NotImplementedError
+            pass
         elif isinstance(n, tbsl):
-            raise NotImplementedError
+            _truth = self.belief - self.disbelief
+            _confidence = 1.0 - self.uncertainty
+            _apriori = 2 * self.apriori - 1.0
 
-        return None
+            n.value = (_truth, _confidence, _apriori)
+        elif isinstance(n, ebsl):
+            norm = cost / self.uncertainty
+            _positive = norm * self.belief
+            _negative = norm * self.disbelief
+
+            n.value = (_positive, _negative, self.apriori)
+        return n
 
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
@@ -140,17 +151,37 @@ class tbsl(_base):
 
         self.value = (_truth, _confidence, _apriori)
 
-    def cast_to(self, other):
+    def cast_to(self, other, cost=tbsl_cost):
         n = _base.cast_to(self, other)
         if isinstance(n, tbsl):
-            return n
+            pass
+        elif isinstance(n, ebsl):
+            norm = 1.0 - self.confidence
+            _positive = (1.0 + self.truth) / norm
+            _negative = (1.0 - self.truth) / norm
+            _apriori = 1.0 + self.apriori
 
-        if isinstance(n, ebsl):
-            raise NotImplementedError
+            half = 1.0 / 2.0
+            _apriori *= half
+
+            half_cst = half * cost
+            _positive = _positive * half_cst - half_cst
+            _negative = _negative * half_cst - half_cst
+
+            n.value = (_positive, _negative, _apriori)
         elif isinstance(n, obsl):
-            raise NotImplementedError
+            _belief = self.confidence + self.truth
+            _disbelief = self.confidence - self.truth
+            _uncertainty = 1.0 - self.confidence
+            _apriori = 1.0 + self.apriori
 
-        return None
+            half = 1.0 /2.0
+            _belief *= half
+            _apriori *= half
+            _disbelief *= half
+
+            n.value = (_belief, _disbelief, _uncertainty, _apriori)
+        return n
 
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
@@ -173,17 +204,25 @@ class ebsl(_base):
 
         return ebsl((_positive, _negative, _apriori))
 
-    def cast_to(self, other):
+    def cast_to(self, other, cost=tbsl_cost):
         n = _base.cast_to(self, other)
         if isinstance(n, ebsl):
-            return n
-
+            pass
         if isinstance(n, tbsl):
-            raise NotImplementedError
-        elif isinstance(n, obsl):
-            raise NotImplementedError
+            norm = 1.0 / (self.positive + self.negative + cost)
+            _truth = (self.positive - self.negative) * norm
+            _confidence = 1.0 - cost * norm
+            _apriori = 2 * self.apriori - 1
 
-        return None
+            n.value = (_truth, _confidence, _apriori)
+        elif isinstance(n, obsl):
+            norm = 1.0 / (self.positive + self.negative + cost)
+            _belief = self.positive * norm
+            _disbelief = self.negative * norm
+            _uncertainty = cost * norm
+
+            n.value = (_belief, _disbelief, _uncertainty, self.apriori)
+        return n
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:

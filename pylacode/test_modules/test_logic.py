@@ -31,6 +31,14 @@ def run():
         for a, b in zip(x.value, n):
             assert a is b
 
+    for stype in test_types:
+        x = stype.uniform(6)
+        for dtype in test_types:
+            n = x.cast_to(dtype)
+            v = n.cast_to(stype)
+            assert isinstance(v, stype) and isinstance(n, dtype)
+            assert (x == v) and (x.equals(n))
+
     for op in test_ops:
         assert _check_op(op)
 
