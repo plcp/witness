@@ -22,6 +22,7 @@ class _base:
     aliases = (
         ('__eq__', 'equals'),
         ('__invert__', 'invert'),
+        ('probability', 'p'),
     )
 
     def __init__(self, other=None, size=None):
@@ -96,6 +97,9 @@ class _base:
     def __invert__(self):
         raise NotImplementedError
 
+    @property
+    def probability(self):
+        raise NotImplementedError
 
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
@@ -147,6 +151,10 @@ class obsl(_base):
         return obsl(
             (self.disbelief, self.belief,
             self.uncertainty, 1.0 - self.apriori))
+
+    @property
+    def probability(self):
+        return self.belief + self.apriori * self.uncertainty
 
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
@@ -204,6 +212,11 @@ class tbsl(_base):
     def __invert__(self):
         return tbsl((-self.truth, self.confidence, -self.apriori))
 
+    @property
+    def probability(self):
+        return (1.0 + self.truth + self.apriori
+            - self.apriori * self.confidence) / 2.0
+
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
@@ -247,6 +260,11 @@ class ebsl(_base):
 
     def __invert__(self):
         return ebsl((self.negative, self.positive, 1.0 - self.apriori))
+
+    @property
+    def probability(self, cost=tbsl_cost):
+        return (self.positive + self.apriori * prior
+            ) / (self.positive + self.negative + prior)
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:

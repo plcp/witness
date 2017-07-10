@@ -5,7 +5,7 @@ import random
 import sys
 
 test_types = pl.logic.types
-test_ops = ['__invert__']
+test_ops = ['__invert__', 'probability']
 
 def _similar(a, b):
     return np.allclose(a, b,
@@ -51,6 +51,11 @@ def run():
     for vtype in test_types:
         x = vtype.uniform(3)
         assert (x == (~x).invert()) and (~x == ~(~x).invert())
+
+    for vtype in test_types:
+        x = vtype.uniform(11)
+        y = x.invert()
+        assert _similar(x.p + y.p, np.ones_like(x.p))
 
     for op in test_ops:
         assert _check_op(op)
