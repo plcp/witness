@@ -39,6 +39,10 @@ def run():
             assert isinstance(v, stype) and isinstance(n, dtype)
             assert (x == v) and (x.equals(n))
 
+    for vtype in test_types:
+        x = vtype.uniform(3)
+        assert (x == (~x).invert()) and (~x == ~(~x).invert())
+
     for op in test_ops:
         assert _check_op(op)
 

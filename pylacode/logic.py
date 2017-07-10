@@ -84,6 +84,13 @@ class _base:
                 for a, b in zip(self.value, other.value)])
     equals = __eq__
 
+    def __invert__(self):
+        raise NotImplementedError
+
+    def invert(self):
+        self.invert = self.__invert__
+        return self.__invert__()
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -129,6 +136,11 @@ class obsl(_base):
 
             n.value = (_positive, _negative, self.apriori)
         return n
+
+    def __invert__(self):
+        return obsl(
+            (self.disbelief, self.belief,
+            self.uncertainty, 1.0 - self.apriori))
 
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
@@ -183,6 +195,9 @@ class tbsl(_base):
             n.value = (_belief, _disbelief, _uncertainty, _apriori)
         return n
 
+    def __invert__(self):
+        return tbsl((-self.truth, self.confidence, -self.apriori))
+
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
@@ -223,6 +238,9 @@ class ebsl(_base):
 
             n.value = (_belief, _disbelief, _uncertainty, self.apriori)
         return n
+
+    def __invert__(self):
+        return ebsl((self.negative, self.positive, 1.0 - self.apriori))
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:
