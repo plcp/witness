@@ -103,6 +103,12 @@ class _base(object):
     def probability(self):
         raise NotImplementedError
 
+    def alpha(self, prior=ebsl_prior):
+        return self.cast_to(ebsl, prior=prior).alpha(prior=prior)
+
+    def beta(self, prior=ebsl_prior):
+        return self.cast_to(ebsl, prior=prior).beta(prior=prior)
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -267,6 +273,12 @@ class ebsl(_base):
     def probability(self, prior=ebsl_prior):
         return (self.positive + self.apriori * prior
             ) / (self.positive + self.negative + prior)
+
+    def alpha(self, prior=ebsl_prior):
+        return self.positive + prior * self.apriori
+
+    def beta(self, prior=ebsl_prior):
+        return self.negative + prior * (1.0 - self.apriori)
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:
