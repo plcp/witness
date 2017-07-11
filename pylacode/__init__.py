@@ -3,7 +3,7 @@ from __future__ import absolute_import, print_function
 from __future__ import unicode_literals, division, with_statement
 
 import sys
-import pylacode
+import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 # default imports
@@ -27,6 +27,6 @@ class test:
             test_name = 'test_{}'.format(t)
 
             __import__('pylacode.test_modules.{}'.format(test_name))
-            test_module = getattr(pylacode.test_modules, test_name)
+            test_module = getattr(pl.test_modules, test_name)
 
             assert test_module.run()

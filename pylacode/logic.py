@@ -3,6 +3,7 @@ from __future__ import absolute_import, print_function
 from __future__ import unicode_literals, division, with_statement
 
 import sys
+import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 import warnings

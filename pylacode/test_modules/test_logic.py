@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+from __future__ import absolute_import, print_function
+from __future__ import unicode_literals, division, with_statement
+
+import sys
 import pylacode as pl
+assert sys.version_info >= (2, 7)
+
 import numpy as np
 import inspect
 import random
@@ -7,24 +14,30 @@ import sys
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability']
 
+# test near-equality with a relative/absolute tolerance
 def _similar(a, b):
     return np.allclose(a, b,
         rtol=pl.logic.eq_rtol,
         atol=pl.logic.eq_atol,
         equal_nan=pl.logic.eq_nan)
 
+# run tests
 def run():
+    # test basic constructor
     for vtype in test_types:
         vtype(size=5)
 
+    # test from-instance constructor
     for vtype in test_types:
         x = vtype(size=3)
         y = vtype(x)
 
         assert x.value is not y.value
         for vx, vy in zip(x.value, y.value):
+            assert _similar(vx, vy)
             assert vx is not vy
 
+    # test by-name getters and setters of internal value
     for vtype in test_types:
         x = vtype(size=7)
         for i, name in enumerate(vtype.value_names):
@@ -34,12 +47,14 @@ def run():
             setattr(x, name, n)
             assert n is x.value[i]
 
+    # test by-tuple constructor
     for vtype in test_types:
         n = [np.ones(4) for _ in range(0, len(vtype.value_names))]
         x = vtype(tuple(n))
         for a, b in zip(x.value, n):
             assert a is b
 
+    # test back-forth cast consistency (« AtoB(BtoA(b)) == b »)
     for stype in test_types:
         x = stype.uniform(6)
         for dtype in test_types:
@@ -48,15 +63,18 @@ def run():
             assert isinstance(v, stype) and isinstance(n, dtype)
             assert (x == v) and (x.equals(n))
 
+    # test double-invert consistency
     for vtype in test_types:
         x = vtype.uniform(3)
         assert (x == (~x).invert()) and (~x == ~(~x).invert())
 
+    # test if « p(A) + p(!A) == 1 »
     for vtype in test_types:
         x = vtype.uniform(11)
         y = x.invert()
         assert _similar(x.p + y.p, np.ones_like(x.p))
 
+    # test operators equivalence between representations
     for op in test_ops:
         assert _check_op(op)
 
