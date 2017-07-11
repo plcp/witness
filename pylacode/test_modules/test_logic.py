@@ -57,8 +57,14 @@ def run():
 
     return True
 
-def _evaluate_op_with_vtype(op_name, vtype, values):
+def _get_op_from_name(vtype, op_name):
     op = getattr(vtype, op_name)
+    if isinstance(op, property):
+        return op.fget
+    return op
+
+def _evaluate_op_with_vtype(op_name, vtype, values):
+    op = _get_op_from_name(vtype, op_name)
     _values = [vtype(value) for value in values]
     return op(*_values), (op_name, vtype, values)
 
@@ -132,7 +138,7 @@ def _check_op(op_name):
 
     width = random.randint(2, 10)
     for vtype in vtypes:
-        op = getattr(vtype, op_name)
+        op = _get_op_from_name(vtype, op_name)
         nargs = _get_parameter_count(op)
         args = [vtype.uniform(width) for _ in range(0, nargs)]
         assert _check_op_forall(op_name, args)
