@@ -17,7 +17,7 @@ eq_rtol = 1e-5 # relative tolerance
 eq_atol = 1e-8 # absolute tolerance
 eq_nan = False # is NaN equal to NaN ?
 
-class _base:
+class _base(object):
     '''Base class for logic types
 
     '''
@@ -283,8 +283,12 @@ for vtype in types:
                 + (array,)
                 + self.value[idx + 1:])
 
-        _fget.__name__ = '_fget_{}'.format(name)
-        _fset.__name__ = '_fset_{}'.format(name)
+        if sys.version_info < (3,):
+            _fget.__name__ = str('_fget_{}'.format(name))
+            _fset.__name__ = str('_fset_{}'.format(name))
+        else:
+            _fget.__name__ = '_fget_{}'.format(name)
+            _fset.__name__ = '_fset_{}'.format(name)
         setattr(vtype, name, property(_fget, _fset))
 
 for name, alias in _base.aliases:

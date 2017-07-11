@@ -149,6 +149,8 @@ def _check_op_forall(op_name, values):
 def _get_parameter_count(op):
     if sys.version_info < (3,):
         spec = inspect.getargspec(op)
+        if spec.defaults is None:
+            return len(spec.args)
         return len(spec.args) - len(spec.defaults)
 
     spec = inspect.signature(op).parameters
