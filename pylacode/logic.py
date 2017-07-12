@@ -64,6 +64,17 @@ class _base(object):
             self.size = size
             self.reset()
 
+    def __str__(self):
+        values = []
+        for a in self.value:
+            s = ', '.join(['{:0.4}'.format(float(v)) for v in a])
+            values.append('[' + s + ']')
+        s = '{}'.format(self.__class__.__name__)
+        return s + '(' + ', '.join(values) + ')'
+
+    def __repr__(self):
+        return '{}@{}'.format(str(self), hex(id(self)))
+
     def reset(self):
         raise NotImplementedError
 
