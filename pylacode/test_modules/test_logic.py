@@ -129,11 +129,22 @@ def _check_op_forall(op_name, values):
                 obtained = (_evaluate_op_with_vtype(*reports[i]), reports[i])
 
                 try:
-                    differ = abs(obtained[0][0] - expected[0][0])
-                    rerror = (pl.logic.eq_atol
-                        + pl.logic.eq_rtol * abs(expected[0][0]))
-                except BaseException:
-                    differ = 'Unavailable'
+                    obt = obtained[0][0]
+                    exp = expected[0][0]
+                    if exp.__class__ in test_types:
+                        obt = obt.cast_to(exp.__class__).value
+                        exp = exp.value
+
+                        differ = [abs(o - e) for o, e in zip(obt, exp)]
+                        rerror = [pl.logic.eq_atol + pl.logic.eq_rtol
+                                    * abs(e) for e in exp]
+                    else:
+                        differ = abs(obt - exp)
+                        rerror = pl.logic.eq_atol + pl.logic.eq_rtol * abs(exp)
+
+                except BaseException as e:
+                    differ = 'Unavailable: {}'.format(e)
+                    rerror = 'Unavailable: <see above exception>'
 
                 raise AssertionError(error +
                     '\n\n >> Here is the failing test case:' +
