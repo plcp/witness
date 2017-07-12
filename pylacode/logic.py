@@ -25,6 +25,7 @@ class _base(object):
         ('__eq__', 'equals'),
         ('__invert__', 'invert'),
         ('probability', 'p'),
+        ('__iadd__', 'merge_with'),
     )
 
     def __init__(self, other=None, size=None):
@@ -127,6 +128,12 @@ class _base(object):
     def w(self, prior=ebsl_prior):
         return self.__class__.weight.fget(self, prior)
 
+    def __iadd__(self, other, prior=ebsl_prior):
+        raise NotImplementedError
+
+    def __add__(self, other, prior=ebsl_prior):
+        return self.copy().__iadd__(other, prior)
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -185,6 +192,31 @@ class obsl(_base):
     def weight(self, prior=ebsl_prior):
         return prior / self.uncertainty
 
+    def __iadd__(self, other, prior=ebsl_prior):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+
+        norm = 1.0 / (self.uncertainty + other.uncertainty
+                - self.uncertainty * other.uncertainty)
+
+        _belief = (self.belief * other.uncertainty
+                + other.belief * self.uncertainty) * norm
+        _disbelief = (self.disbelief * other.uncertainty
+                + other.disbelief * self.uncertainty) * norm
+        _uncertainty = 1 - _belief - _disbelief
+
+        s_weight = self.w(prior) - prior
+        o_weight = other.w(prior) - prior
+
+        if (s_weight == 0).all() and (s_weight == o_weight).all():
+            _apriori = (self.apriori + other.apriori) / 2.
+            return obsl((_belief, _disbelief, _uncertainty, _apriori))
+
+        _apriori = (self.apriori * s_weight + other.apriori * o_weight)
+        _apriori /= s_weight + o_weight
+        return obsl((_belief, _disbelief, _uncertainty, _apriori))
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -227,7 +259,7 @@ class tbsl(_base):
             _uncertainty = 1.0 - self.confidence
             _apriori = 1.0 + self.apriori
 
-            half = 1.0 /2.0
+            half = 1.0 / 2.0
             _belief *= half
             _apriori *= half
             _disbelief *= half
@@ -246,6 +278,11 @@ class tbsl(_base):
     @property
     def weight(self, prior=ebsl_prior):
         return prior / (1.0 - self.confidence)
+
+    def __iadd__(self, other, prior=ebsl_prior):
+        n = self.cast_to(ebsl)
+        n += other
+        return n.cast_to(tbsl)
 
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
@@ -305,6 +342,25 @@ class ebsl(_base):
     @property
     def weight(self, prior=ebsl_prior):
         return self.negative + self.positive + prior
+
+    def __iadd__(self, other, prior=ebsl_prior):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+
+        _positive = self.positive + other.positive
+        _negative = self.negative + other.negative
+
+        s_weight = self.w(prior) - prior
+        o_weight = other.w(prior) - prior
+
+        if (s_weight == 0).all() and (s_weight == o_weight).all():
+            _apriori = (self.apriori + other.apriori) / 2.
+            return ebsl((_positive, _negative, _apriori))
+
+        _apriori = (self.apriori * s_weight + other.apriori * o_weight)
+        _apriori /= s_weight + o_weight
+        return ebsl((_positive, _negative, _apriori))
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:
