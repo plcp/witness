@@ -109,6 +109,13 @@ class _base(object):
     def beta(self, prior=ebsl_prior):
         return self.cast_to(ebsl, prior=prior).beta(prior=prior)
 
+    @property
+    def weight(self, prior=ebsl_prior):
+        raise NotImplementedError
+
+    def w(self, prior=ebsl_prior):
+        return self.__class__.weight.fget(self, prior)
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -148,9 +155,8 @@ class obsl(_base):
 
             n.value = (_truth, _confidence, _apriori)
         elif isinstance(n, ebsl):
-            norm = prior / self.uncertainty
-            _positive = norm * self.belief
-            _negative = norm * self.disbelief
+            _positive = self.w(prior) * self.belief
+            _negative = self.w(prior) * self.disbelief
 
             n.value = (_positive, _negative, self.apriori)
         return n
@@ -163,6 +169,10 @@ class obsl(_base):
     @property
     def probability(self):
         return self.belief + self.apriori * self.uncertainty
+
+    @property
+    def weight(self, prior=ebsl_prior):
+        return prior / self.uncertainty
 
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
@@ -190,17 +200,14 @@ class tbsl(_base):
         if isinstance(n, tbsl):
             pass
         elif isinstance(n, ebsl):
-            norm = 1.0 - self.confidence
-            _positive = (1.0 + self.truth) / norm
-            _negative = (1.0 - self.truth) / norm
+            _positive = (1.0 + self.truth) * self.w(prior)
+            _negative = (1.0 - self.truth) * self.w(prior)
             _apriori = 1.0 + self.apriori
 
             half = 1.0 / 2.0
             _apriori *= half
-
-            half_cst = half * prior
-            _positive = _positive * half_cst - half_cst
-            _negative = _negative * half_cst - half_cst
+            _positive = (_positive - prior) * half
+            _negative = (_negative - prior) * half
 
             n.value = (_positive, _negative, _apriori)
         elif isinstance(n, obsl):
@@ -224,6 +231,10 @@ class tbsl(_base):
     def probability(self):
         return (1.0 + self.truth + self.apriori
             - self.apriori * self.confidence) / 2.0
+
+    @property
+    def weight(self, prior=ebsl_prior):
+        return prior / (1.0 - self.confidence)
 
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
@@ -251,14 +262,14 @@ class ebsl(_base):
         if isinstance(n, ebsl):
             pass
         if isinstance(n, tbsl):
-            norm = 1.0 / (self.positive + self.negative + prior)
+            norm = 1.0 / self.w(prior)
             _truth = (self.positive - self.negative) * norm
             _confidence = 1.0 - prior * norm
             _apriori = 2 * self.apriori - 1
 
             n.value = (_truth, _confidence, _apriori)
         elif isinstance(n, obsl):
-            norm = 1.0 / (self.positive + self.negative + prior)
+            norm = 1.0 / self.w(prior)
             _belief = self.positive * norm
             _disbelief = self.negative * norm
             _uncertainty = prior * norm
@@ -279,6 +290,10 @@ class ebsl(_base):
 
     def beta(self, prior=ebsl_prior):
         return self.negative + prior * (1.0 - self.apriori)
+
+    @property
+    def weight(self, prior=ebsl_prior):
+        return self.negative + self.positive + prior
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:

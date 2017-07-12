@@ -12,7 +12,7 @@ import random
 import sys
 
 test_types = pl.logic.types
-test_ops = ['__invert__', 'probability', 'alpha', 'beta']
+test_ops = ['__invert__', 'probability', 'alpha', 'beta', 'weight']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
