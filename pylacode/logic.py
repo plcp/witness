@@ -15,6 +15,9 @@ ebsl_prior = 2 # (ensure uniform Beta-distribution when « apriori == 0.5 »)
 # Minimal uncertainty considered during discounting
 min_uncertainty = 1.0 / 33. # defaulted at 33:1 to fix « inert_weight(2) == 64 »
 
+# Belief required for full-trust during discounting
+trust_threshold = 1.0 / 2.0 # defaulted at 2:1 for positive against negative
+
 # Operator __eq__ constants
 eq_rtol = 1e-5 # relative tolerance
 eq_atol = 1e-8 # absolute tolerance
@@ -146,6 +149,13 @@ class _base(object):
     def __add__(self, other, prior=ebsl_prior):
         return self.copy().__iadd__(other, prior)
 
+    @property
+    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+        raise NotImplementedError
+
+    def t(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+        return self.__class__.trust.fget(self, prior, mu, tt)
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -233,6 +243,20 @@ class obsl(_base):
         _apriori /= s_weight + o_weight
         return obsl((_belief, _disbelief, _uncertainty, _apriori))
 
+    @property
+    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+        iw = self.inert_weight(prior, mu)
+
+        scale = tt * mu
+        scale = (scale - tt) / (scale - mu)
+        scale = iw / scale
+
+        brate = (self.belief * scale - self.disbelief) * self.w(prior)
+        arate = (self.apriori - 1. / 2.) * (self.w(prior) - prior)
+
+        result = (brate + arate) / iw
+        return result
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -302,6 +326,23 @@ class tbsl(_base):
         n = self.cast_to(ebsl)
         n += other
         return n.cast_to(tbsl)
+
+    @property
+    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+        iw = self.inert_weight(prior, mu)
+
+        scale = tt * mu
+        scale = (scale - tt) / (scale - mu)
+        scale = iw / scale
+
+        brate = ((1. + self.truth) * scale + self.truth - 1.) * self.w(prior)
+        arate = self.apriori * (self.w(prior) - prior) / 2.
+
+        brate -= prior * (scale - 1.)
+        brate /= 2.0
+
+        result = (brate + arate) / iw
+        return result
 
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
@@ -383,6 +424,20 @@ class ebsl(_base):
         _apriori = (self.apriori * s_weight + other.apriori * o_weight)
         _apriori /= s_weight + o_weight
         return ebsl((_positive, _negative, _apriori))
+
+    @property
+    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+        iw = self.inert_weight(prior, mu)
+
+        scale = tt * mu
+        scale = (scale - tt) / (scale - mu)
+        scale = iw / scale
+
+        brate = self.positive * scale - self.negative
+        arate = (self.apriori - 1. / 2.) * (self.w(prior) - prior)
+
+        result = (brate + arate) / iw
+        return result
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:

@@ -13,7 +13,7 @@ import sys
 
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability', 'alpha', 'beta',
-            'weight', '__iadd__']
+            'weight', '__iadd__', 'trust']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
@@ -74,6 +74,12 @@ def run():
         x = vtype.uniform(11)
         y = x.invert()
         assert _similar(x.p + y.p, np.ones_like(x.p))
+
+    # test if trust factor is linear uppon consensus
+    for vtype in test_types:
+        x = vtype.uniform(47)
+        y = vtype.uniform(47)
+        assert _similar(x.trust + y.trust, (x + y).trust)
 
     # test operators equivalence between representations
     for op in test_ops:
