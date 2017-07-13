@@ -441,6 +441,16 @@ class ebsl(_base):
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:
+    for dtype in types:
+        def _fcast(self, target=dtype):
+            return self.cast_to(target)
+
+        if sys.version_info < (3,):
+            _fcast.__name__ = str('_cast_to_{}'.format(dtype.__name__))
+        else:
+            _fcast.__name__ = '_cast_to_{}'.format(dtype.__name__)
+        setattr(vtype, dtype.__name__, property(_fcast))
+
     for i, name in enumerate(vtype.value_names):
         def _fget(self, idx=i):
             return self.value[idx]
