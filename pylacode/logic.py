@@ -65,16 +65,21 @@ class _base(object):
             self.size = size
             self.reset()
 
-    def __str__(self):
+    def __str__(self, crop_to=None):
+        if crop_to is None:
+            crop_to = len(self)
+
         values = []
         for a in self.value:
-            s = ', '.join(['{:0.4}'.format(float(v)) for v in a])
-            values.append('[' + s + ']')
+            s = ['{:0.4}'.format(float(v)) for v in a[:crop_to]]
+            if len(s) != len(a):
+                s.append('...')
+            values.append('[' + ', '.join(s) + ']')
         s = '{}'.format(self.__class__.__name__)
-        return s + '(' + ', '.join(values) + ')'
+        return s + '(' + ', '.join(values) + ', size={})'.format(len(self))
 
     def __repr__(self):
-        return '{}@{}'.format(str(self), hex(id(self)))
+        return '{}@{}'.format(self.__str__(crop_to=1), hex(id(self)))
 
     def reset(self):
         raise NotImplementedError
