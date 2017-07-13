@@ -12,6 +12,9 @@ import numpy as np
 # Non-informative prior weight
 ebsl_prior = 2 # (ensure uniform Beta-distribution when « apriori == 0.5 »)
 
+# Minimal uncertainty considered during discounting
+min_uncertainty = 1.0 / 33. # defaulted at 33:1 to fix « inert_weight(2) == 64 »
+
 # Operator __eq__ constants
 eq_rtol = 1e-5 # relative tolerance
 eq_atol = 1e-8 # absolute tolerance
@@ -85,8 +88,12 @@ class _base(object):
         raise NotImplementedError
 
     @staticmethod
-    def uniform(size):
+    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
         raise NotImplementedError
+
+    @staticmethod
+    def inert_weight(prior=ebsl_prior, min_u=min_uncertainty):
+        return prior * (1 - min_uncertainty) / min_uncertainty
 
     def cast_to(self, other):
         assert other in types
@@ -154,8 +161,12 @@ class obsl(_base):
         self.value = (_belief, _disbelief, _uncertainty, _apriori)
 
     @staticmethod
-    def uniform(size):
-        _uncertainty = np.random.uniform(size=size)
+    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+        if _max is None:
+            _max = 1.0 - mu
+        low, high = (1. - _max, 1. - _min)
+
+        _uncertainty = np.random.uniform(low=low, high=high, size=size)
         snd = np.random.uniform(high=(1.0 - _uncertainty), size=size)
         trd = 1.0 - snd - _uncertainty
 
@@ -229,8 +240,11 @@ class tbsl(_base):
     value_names = ['truth', 'confidence', 'apriori']
 
     @staticmethod
-    def uniform(size):
-        _confi = np.random.uniform(size=size)
+    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+        if _max is None:
+            _max = 1.0 - mu
+
+        _confi = np.random.uniform(low=_min, high=_max, size=size)
         _truth = np.random.uniform(low=-_confi, high=_confi, size=size)
         _apriori = np.random.uniform(low=-1.0, high=1.0, size=size)
 
@@ -303,7 +317,10 @@ class ebsl(_base):
         self.value = (_positive, _negative, _apriori)
 
     @staticmethod
-    def uniform(size, _min=0, _max=1e2):
+    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+        if _max is None:
+            _max = _base.inert_weight(prior, mu) / 2.0
+
         _positive = np.random.randint(_min, _max, size=size)
         _negative = np.random.randint(_min, _max, size=size)
         _apriori = np.random.uniform(size=size)
