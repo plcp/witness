@@ -250,7 +250,9 @@ class obsl(_base):
 
         _apriori = (self.apriori * s_weight + other.apriori * o_weight)
         _apriori /= s_weight + o_weight
-        return obsl((_belief, _disbelief, _uncertainty, _apriori))
+
+        self.value = (_belief, _disbelief, _uncertainty, _apriori)
+        return self
 
     @property
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
@@ -335,7 +337,9 @@ class tbsl(_base):
     def __iadd__(self, other, prior=ebsl_prior):
         n = self.cast_to(ebsl)
         n += other
-        return n.cast_to(tbsl)
+
+        self.value = n.cast_to(tbsl).value
+        return self
 
     @property
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
@@ -434,7 +438,9 @@ class ebsl(_base):
 
         _apriori = (self.apriori * s_weight + other.apriori * o_weight)
         _apriori /= s_weight + o_weight
-        return ebsl((_positive, _negative, _apriori))
+
+        self.value = (_positive, _negative, _apriori)
+        return self
 
     @property
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
