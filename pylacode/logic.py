@@ -30,8 +30,12 @@ class _base(object):
     aliases = (
         ('__eq__', 'equals'),
         ('__invert__', 'invert'),
-        ('probability', 'p'),
         ('__iadd__', 'merge_with'),
+    )
+    properties = (
+        ('probability', 'p'),
+        ('weight', 'w'),
+        ('trust', 't'),
     )
 
     def __init__(self, other=None, size=None):
@@ -151,9 +155,6 @@ class _base(object):
     def weight(self, prior=ebsl_prior):
         raise NotImplementedError
 
-    def w(self, prior=ebsl_prior):
-        return self.__class__.weight.fget(self, prior)
-
     def __iadd__(self, other, prior=ebsl_prior):
         raise NotImplementedError
 
@@ -163,9 +164,6 @@ class _base(object):
     @property
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
         raise NotImplementedError
-
-    def t(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
-        return self.__class__.trust.fget(self, prior, mu, tt)
 
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
@@ -487,3 +485,8 @@ for name, alias in _base.aliases:
     for vtype in types:
         op = getattr(vtype, name)
         setattr(vtype, alias, op)
+
+for name, alias in _base.properties:
+    for vtype in types:
+        op = getattr(vtype, name)
+        setattr(vtype, alias, op.fget)
