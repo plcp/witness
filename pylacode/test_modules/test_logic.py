@@ -80,8 +80,8 @@ def run():
     # test if « p(A) + p(!A) == 1 »
     for vtype in test_types:
         x = vtype.uniform(11)
-        y = x.invert()
-        assert _similar(x.p + y.p, np.ones_like(x.p))
+        y = ~x
+        assert _similar(x.p() + y.p(), np.ones_like(x.p()))
 
     # test if trust factor is linear uppon consensus
     for vtype in test_types:
@@ -175,12 +175,14 @@ def _check_op_forall(op_name, values):
 def _get_parameter_count(op):
     if sys.version_info < (3,):
         spec = inspect.getargspec(op)
-        if spec.defaults is None:
-            return len(spec.args)
-        return len(spec.args) - len(spec.defaults)
+        _len = len(spec.args)
+        if spec.defaults is not None:
+            _len -= len(spec.defaults)
+        return _len
 
     spec = inspect.signature(op).parameters
     args = [p for p in spec if spec[p].default is inspect._empty]
+    args = [p for p in args if spec[p].kind not in {2, 4}]
     return len(args)
 
 def _check_op(op_name):

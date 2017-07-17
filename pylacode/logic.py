@@ -29,13 +29,16 @@ class _base(object):
     '''
     aliases = (
         ('__eq__', 'equals'),
-        ('__invert__', 'invert'),
         ('__iadd__', 'merge_with'),
     )
     properties = (
         ('probability', 'p'),
         ('weight', 'w'),
         ('trust', 't'),
+    )
+    bycopy_ops = (
+        ('invert', '__invert__'),
+        ('__iadd__', '__add__'),
     )
 
     def __init__(self, other=None, size=None):
@@ -138,7 +141,7 @@ class _base(object):
                 np.allclose(a, b, rtol, atol, equal_nan)
                 for a, b in zip(self.value, other.value)])
 
-    def __invert__(self):
+    def invert(self):
         raise NotImplementedError
 
     @property
@@ -157,9 +160,6 @@ class _base(object):
 
     def __iadd__(self, other, prior=ebsl_prior):
         raise NotImplementedError
-
-    def __add__(self, other, prior=ebsl_prior):
-        return self.copy().__iadd__(other, prior)
 
     @property
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
@@ -214,10 +214,10 @@ class obsl(_base):
             n.value = (_positive, _negative, self.apriori)
         return n
 
-    def __invert__(self):
-        return obsl(
-            (self.disbelief, self.belief,
-            self.uncertainty, 1.0 - self.apriori))
+    def invert(self):
+        self.value = (self.disbelief, self.belief,
+            self.uncertainty, 1.0 - self.apriori)
+        return self
 
     @property
     def probability(self):
@@ -319,8 +319,9 @@ class tbsl(_base):
             n.value = (_belief, _disbelief, _uncertainty, _apriori)
         return n
 
-    def __invert__(self):
-        return tbsl((-self.truth, self.confidence, -self.apriori))
+    def invert(self):
+        self.value = (-self.truth, self.confidence, -self.apriori)
+        return self
 
     @property
     def probability(self):
@@ -397,8 +398,9 @@ class ebsl(_base):
             n.value = (_belief, _disbelief, _uncertainty, self.apriori)
         return n
 
-    def __invert__(self):
-        return ebsl((self.negative, self.positive, 1.0 - self.apriori))
+    def invert(self):
+        self.value = (self.negative, self.positive, 1.0 - self.apriori)
+        return self
 
     @property
     def probability(self, prior=ebsl_prior):
@@ -490,3 +492,18 @@ for name, alias in _base.properties:
     for vtype in types:
         op = getattr(vtype, name)
         setattr(vtype, alias, op.fget)
+
+for name, alias in _base.bycopy_ops:
+    for vtype in types:
+        op = getattr(vtype, name)
+        def _bycopy_factory(_name=name, _op=op):
+            def _bycopy(self, *kargs):
+                return _op(self.copy(), *kargs)
+
+            if sys.version_info < (3,):
+                _bycopy.__name__ = str('_bycopy_{}'.format(_name))
+            else:
+                _bycopy.__name__ = '_bycopy_{}'.format(_name)
+
+            return _bycopy
+        setattr(vtype, alias, _bycopy_factory())
