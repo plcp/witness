@@ -13,7 +13,7 @@ import sys
 
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability', 'alpha', 'beta',
-            'weight', '__iadd__', 'trust']
+            'weight', '__iadd__', 'trust', '__imul__', '__idiv__']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
@@ -88,6 +88,30 @@ def run():
         x = vtype.uniform(47)
         y = vtype.uniform(47)
         assert _similar(x.trust + y.trust, (x + y).trust)
+
+    # test distributivity of discounting upon consensus
+    for vtype in test_types:
+        x, y, z = [vtype.uniform(83) for _ in range(0, 3)]
+        assert (x * z) + (y * z) == (x + y) * z
+
+    # test if scalar product « by n » is equal to « x + x + … + x » (n times)
+    for vtype in test_types:
+        x = vtype.uniform(23)
+        assert 2 * x == x + x
+        assert x * 3 == x + x + x
+        assert 2 * x * 2 == x + x + x + x
+
+    # test various calculus upon product
+    for vtype in test_types:
+        x, y, z = [vtype.uniform(101) for _ in range(0, 3)]
+        assert x / 2 == (x * 2) / 4
+        assert (x * y) / y == x
+        assert (((x * 2) / y) / 2) * y == x
+        assert (x * y * z * z) / (y * z) == x * z
+        assert _similar(x.trust * 2, (x * 2).trust)
+        assert _similar(x.trust ** 3, (x * x * x).trust)
+        assert _similar(x.trust * y.trust, (x * y).trust)
+        assert _similar((x.trust + y.trust) * z.trust, (x * z + y * z).trust)
 
     # test operators equivalence between representations
     for op in test_ops:

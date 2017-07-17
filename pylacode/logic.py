@@ -39,6 +39,10 @@ class _base(object):
     bycopy_ops = (
         ('invert', '__invert__'),
         ('__iadd__', '__add__'),
+        ('__imul__', '__mul__'),
+        ('__imul__', '__rmul__'),
+        ('__idiv__', '__div__'),
+        ('__idiv__', '__truediv__'),
     )
 
     def __init__(self, other=None, size=None):
@@ -165,6 +169,24 @@ class _base(object):
     def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
         raise NotImplementedError
 
+    def __imul__(self, other):
+        if other.__class__ in types:
+            return self.__imul__(other.trust)
+        elif isinstance(other, (int, float)):
+            return self.__imul__(np.ones_like(self.value[0]) * float(other))
+
+        raise AssertionError('Expecting scalar, numpy.ndarray or *bsl')
+
+    def __idiv__(self, other):
+        if other.__class__ in types:
+            return self.__imul__(1.0 / other.trust)
+        elif isinstance(other, (int, float)):
+            return self.__imul__(np.ones_like(self.value[0]) / float(other))
+        elif isinstance(other, np.ndarray):
+            return self.__imul__(1.0 / np.ndarray)
+
+        raise AssertionError('Expecting scalar, numpy.ndarray or *bsl')
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -268,6 +290,21 @@ class obsl(_base):
         result = (brate + arate) / iw
         return result
 
+    def __imul__(self, other):
+        if not isinstance(other, np.ndarray):
+            return _base.__imul__(self, other)
+
+        _belief = other * self.belief
+        _disbelief = other * self.disbelief
+
+        norm = _belief + _disbelief + self.uncertainty
+        _belief /= norm
+        _disbelief /= norm
+        _uncertainty = self.uncertainty / norm
+
+        self.value = (_belief, _disbelief, _uncertainty, self.apriori)
+        return self
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -357,6 +394,20 @@ class tbsl(_base):
 
         result = (brate + arate) / iw
         return result
+
+    def __imul__(self, other):
+        if not isinstance(other, np.ndarray):
+            return _base.__imul__(self, other)
+
+        _truth = self.truth * other
+        _confidence = self.confidence * other
+
+        norm = 1.0 + self.confidence * (other - 1)
+        _truth /= norm
+        _confidence /= norm
+
+        self.value = (_truth, _confidence, self.apriori)
+        return self
 
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
@@ -455,6 +506,16 @@ class ebsl(_base):
 
         result = (brate + arate) / iw
         return result
+
+    def __imul__(self, other):
+        if not isinstance(other, np.ndarray):
+            return _base.__imul__(self, other)
+
+        _positive = other * self.positive
+        _negative = other * self.negative
+
+        self.value = (_positive, _negative, self.apriori)
+        return self
 
 types = [obsl, tbsl, ebsl]
 for vtype in types:
