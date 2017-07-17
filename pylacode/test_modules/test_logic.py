@@ -55,6 +55,14 @@ def run():
         for a, b in zip(x.value, n):
             assert a is b
 
+    # test by-value constructor
+    for vtype in test_types:
+        n = [np.random.rand() for _ in range(0, len(vtype.value_names))]
+        x = vtype(tuple(n))
+        for a, b in zip(x.value, n):
+            assert len(a) == 1
+            assert a[0] == b
+
     # test back-forth cast consistency (« AtoB(BtoA(b)) == b »)
     for stype in test_types:
         x = stype.uniform(6)

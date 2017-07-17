@@ -41,8 +41,17 @@ class _base(object):
                     'Expected a tuple of lenght {}'.format(
                     len(self.value_names)))
 
-            s = len(other[0])
+            s = None
+            if isinstance(other[0], (float, int)):
+                s = 1
+            else:
+                s = len(other[0])
+
+            new_values = []
             for v in other:
+                if isinstance(v, (float, int)):
+                    v = np.array([float(v),])
+
                 if not isinstance(v, np.ndarray):
                     raise AssertionError(
                         'Expecting numpy.ndarray: {} in {}'.format(
@@ -52,11 +61,13 @@ class _base(object):
                     raise AssertionError(
                         'Expecting uniform lenght: {}'.format(other))
 
+                new_values.append(v)
+
             if size is not None:
                 warnings.warn('Size given but ignored')
 
-            self.size = len(other[0])
-            self.value = other
+            self.size = s
+            self.value = tuple(new_values)
         elif other is not None:
             assert other.__class__ in types
             if size is not None:
