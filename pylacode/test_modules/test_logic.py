@@ -7,6 +7,7 @@ import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 import numpy as np
+import warnings
 import inspect
 import random
 import sys
@@ -89,21 +90,58 @@ def run():
         y = vtype.uniform(47)
         assert _similar(x.trust + y.trust, (x + y).trust)
 
+    _success = False
+    for j in range(0, 24):
+        with warnings.catch_warnings(record=True) as w:
+            warnings.simplefilter('always')
+
+            try:
+                _unstable_tests()
+                _success = True
+            except AssertionError as e:
+                _warns = []
+                for i in range(0, len(w)):
+                    _wi = None
+                    if sys.version_info < (3,):
+                        _wi = w[i].message
+                    else:
+                        _wi = str(w[i])
+
+                    if 'Unstable numeric values suppressed.' in _wi:
+                        _warns.append(w[i])
+
+                if len(_warns) < 1:
+                    raise AssertionError('No warning raised when this '
+                        + 'assertion failed: ' + str(e))
+        if _success:
+            break
+
+    if not _success:
+        raise AssertionError('Numerically unstable operations failed '
+            + '{} times in a row'.format(j + 1))
+
+    # test operators equivalence between representations
+    for op in test_ops:
+        assert _check_op(op)
+
+    return True
+
+def _unstable_tests():
     # test distributivity of discounting upon consensus
     for vtype in test_types:
-        x, y, z = [vtype.uniform(83) for _ in range(0, 3)]
+        x, y, z = [vtype.uniform(601) for _ in range(0, 3)]
         assert (x * z) + (y * z) == (x + y) * z
 
-    # test if scalar product « by n » is equal to « x + x + … + x » (n times)
+    # test if scalar product « by n » == « x + x + … + x » (n times)
     for vtype in test_types:
-        x = vtype.uniform(23)
+        x = vtype.uniform(541)
         assert 2 * x == x + x
         assert x * 3 == x + x + x
         assert 2 * x * 2 == x + x + x + x
 
     # test various calculus upon product
     for vtype in test_types:
-        x, y, z = [vtype.uniform(101) for _ in range(0, 3)]
+        x, y, z = [vtype.uniform(463) for _ in range(0, 3)]
         assert x / 2 == (x * 2) / 4
         assert (x * y) / y == x
         assert (((x * 2) / y) / 2) * y == x
@@ -111,13 +149,8 @@ def run():
         assert _similar(x.trust * 2, (x * 2).trust)
         assert _similar(x.trust ** 3, (x * x * x).trust)
         assert _similar(x.trust * y.trust, (x * y).trust)
-        assert _similar((x.trust + y.trust) * z.trust, (x * z + y * z).trust)
-
-    # test operators equivalence between representations
-    for op in test_ops:
-        assert _check_op(op)
-
-    return True
+        assert _similar((x.trust + y.trust) * z.trust,
+            (x * z + y * z).trust)
 
 def _get_op_from_name(vtype, op_name):
     op = getattr(vtype, op_name)
@@ -187,9 +220,9 @@ def _check_op_forall(op_name, values):
 
                 raise AssertionError(error +
                     '\n\n >> Here is the failing test case:' +
-                    '\n\t{}'.format(obtained) +
+                    '\n\t{}'.format(str(obtained)) +
                     '\n\n >> Here is the expected result:' +
-                    '\n\t{}'.format(expected) +
+                    '\n\t{}'.format(str(expected)) +
                     '\n\n >> Here is the error vs tolerance:' +
                     '\n\t{}'.format(differ) +
                     '\n\t{}'.format(rerror) +
