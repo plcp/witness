@@ -548,7 +548,78 @@ class ebsl(_base):
         self.value = (_positive, _negative, self.apriori)
         return self
 
-types = [obsl, tbsl, ebsl]
+def describe_likelihood(scalar):
+    if isinstance(scalar, types):
+        assert len(scalar) == 1
+        scalar = scalar.probability[0]
+    if isinstance(scalar, np.ndarray):
+        assert len(scalar) == 1
+        scalar = scalar[0]
+    assert isinstance(scalar, (float, int))
+
+    if False:
+        pass
+    elif scalar > 95. / 100.:
+        return 'Absolutely'
+    elif scalar > 85. / 100.:
+        return 'Highly Likely'
+    elif scalar > 75. / 100.:
+        return 'Likely'
+    elif scalar > 65. / 100.:
+        return 'Somewhat Likely'
+    elif scalar > 55. / 100.:
+        return 'Better than even'
+    elif scalar > 45. / 100.:
+        return 'Chances about even'
+    elif scalar > 35. / 100.:
+        return 'Lesser than even'
+    elif scalar > 25. / 100.:
+        return 'Somewhat Unlikely'
+    elif scalar > 15. / 100.:
+        return 'Unlikely'
+    elif scalar > 5. / 100.:
+        return 'Highly Unlikely'
+    else:
+        return 'Absolutely Not'
+
+def describe_uncertainty(scalar):
+    if isinstance(scalar, types):
+        assert len(scalar) == 1
+        scalar = 1. - scalar.obsl.uncertainty[0]
+    if isinstance(scalar, np.ndarray):
+        assert len(scalar) == 1
+        scalar = scalar[0]
+    assert isinstance(scalar, (float, int))
+
+    if False:
+        pass
+    elif scalar > 95. / 100.:
+        return 'Completely Certain'
+    elif scalar > 85. / 100.:
+        return 'Almost Certain'
+    elif scalar > 70. / 100.:
+        return 'Somewhat Certain'
+    elif scalar > 55. / 100.:
+        return 'Somewhat Uncertain'
+    elif scalar > 45. / 100.:
+        return 'Uncertain'
+    elif scalar > 35. / 100.:
+        return 'Very Uncertain'
+    elif scalar > 15. / 100.:
+        return 'Highly Uncertain'
+    elif scalar > 5. / 100.:
+        return 'Almost Fully Uncertain'
+    else:
+        return 'Completely Uncertain'
+
+def describe(_this):
+    _begin = describe_likelihood(_this)
+    _end = describe_uncertainty(_this)
+    if 'Uncertain' in _end:
+        return _begin + ", but it's " + _end
+    return _begin + ", and it's " + _end
+
+types = (obsl, tbsl, ebsl)
 for vtype in types:
     for dtype in types:
         def _fcast(self, target=dtype):
