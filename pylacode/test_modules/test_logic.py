@@ -107,12 +107,12 @@ def run():
                     else:
                         _wi = str(w[i])
 
-                    if 'Unstable numeric values suppressed.' in _wi:
+                    if pl.logic.stable_warntext in _wi:
                         _warns.append(w[i])
 
                 if len(_warns) < 1:
-                    raise AssertionError('No warning raised when this '
-                        + 'assertion failed: ' + str(e))
+                    raise AssertionError('No warning raised when '
+                        + 'assertion failed: {}, {} '.format(str(w), e))
         if _success:
             break
 

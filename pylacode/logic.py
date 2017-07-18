@@ -20,6 +20,8 @@ trust_threshold = 1.0 / 2.0 # defaulted at 2:1 for positive against negative
 
 # Stable Residual (used when numeric instability can't be avoided)
 stable_residual = 1e-10
+stable_warntext = ('Numerically unstable calculus suppressed '
+    + '(obtained values may not be meaningful).')
 
 # Operator __eq__ constants
 eq_rtol = 1e-5 # relative tolerance
@@ -196,8 +198,7 @@ class _base(object):
 
                 _invalids = np.abs(_trust) < stable_residual
                 if any(_invalids):
-                    warnings.warn('Unstable numeric values suppressed.',
-                        RuntimeWarning)
+                    warnings.warn(stable_warntext, RuntimeWarning)
                     _trust[_invalids] = stable_residual
 
                 return self.__imul__(1.0 / _trust)
@@ -270,15 +271,29 @@ class obsl(_base):
 
     @property
     def weight(self, prior=ebsl_prior):
-        return prior / self.uncertainty
+        norm = None
+        with np.errstate(divide='raise', invalid='raise'):
+            try:
+                norm = 1. / self.uncertainty
+            except FloatingPointError:
+                warnings.warn(stable_warntext, RuntimeWarning)
+                norm = 1.0 / stable_residual
+
+        return prior * norm
 
     def __iadd__(self, other, prior=ebsl_prior):
         assert other.__class__ in types
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
 
-        norm = 1.0 / (self.uncertainty + other.uncertainty
-                - self.uncertainty * other.uncertainty)
+        norm = None
+        with np.errstate(divide='raise', invalid='raise'):
+            try:
+                norm = 1.0 / (self.uncertainty + other.uncertainty
+                    - self.uncertainty * other.uncertainty)
+            except FloatingPointError:
+                warnings.warn(stable_warntext, RuntimeWarning)
+                norm = 1.0 / stable_residual
 
         _belief = (self.belief * other.uncertainty
                 + other.belief * self.uncertainty) * norm
@@ -322,13 +337,17 @@ class obsl(_base):
         _belief = other * self.belief
         _disbelief = other * self.disbelief
 
-        norm = _belief + _disbelief + self.uncertainty
-
-        _uncertainty = None
+        norm = None
         with np.errstate(divide='raise', invalid='raise'):
-            _belief /= norm
-            _disbelief /= norm
-            _uncertainty = self.uncertainty / norm
+            try:
+                norm = 1. / (_belief + _disbelief + self.uncertainty)
+            except FloatingPointError:
+                warnings.warn(stable_warntext, RuntimeWarning)
+                norm = 1.0 / stable_residual
+
+        _belief *= norm
+        _disbelief *= norm
+        _uncertainty = self.uncertainty * norm
 
         self.value = (_belief, _disbelief, _uncertainty, self.apriori)
         return self
@@ -397,7 +416,15 @@ class tbsl(_base):
 
     @property
     def weight(self, prior=ebsl_prior):
-        return prior / (1.0 - self.confidence)
+        norm = None
+        with np.errstate(divide='raise', invalid='raise'):
+            try:
+                norm = 1. / (1. - self.confidence)
+            except FloatingPointError:
+                warnings.warn(stable_warntext, RuntimeWarning)
+                norm = 1.0 / stable_residual
+
+        return prior * norm
 
     def __iadd__(self, other, prior=ebsl_prior):
         n = self.cast_to(ebsl)
@@ -430,10 +457,16 @@ class tbsl(_base):
         _truth = self.truth * other
         _confidence = self.confidence * other
 
-        norm = 1.0 + self.confidence * (other - 1)
+        norm = None
         with np.errstate(divide='raise', invalid='raise'):
-            _truth /= norm
-            _confidence /= norm
+            try:
+                norm = 1. / (1.0 + self.confidence * (other - 1))
+            except FloatingPointError:
+                warnings.warn(stable_warntext, RuntimeWarning)
+                norm = 1.0 / stable_residual
+
+        _truth *= norm
+        _confidence *= norm
 
         self.value = (_truth, _confidence, self.apriori)
         return self
@@ -489,7 +522,7 @@ class ebsl(_base):
     @property
     def probability(self, prior=ebsl_prior):
         return (self.positive + self.apriori * prior
-            ) / (self.positive + self.negative + prior)
+            ) / self.w(prior)
 
     def alpha(self, prior=ebsl_prior):
         return self.positive + prior * self.apriori
@@ -517,8 +550,7 @@ class ebsl(_base):
                 _apriori = (self.apriori * s_weight + other.apriori * o_weight)
                 _apriori /= s_weight + o_weight
             except FloatingPointError:
-                warnings.warn('Unstable numeric values suppressed.',
-                    RuntimeWarning)
+                warnings.warn(stable_warntext, RuntimeWarning)
                 _apriori = (self.apriori + other.apriori) / 2.
 
         self.value = (_positive, _negative, _apriori)
