@@ -206,6 +206,10 @@ class _base(object):
             print(other.trust)
             raise e
 
+    def __getitem__(self, slice_or_index):
+        _value = [v[slice_or_index] for v in self.value]
+        return self.__class__(tuple(_value))
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
