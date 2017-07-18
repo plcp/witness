@@ -24,7 +24,7 @@ stable_residual = 1e-10
 # Operator __eq__ constants
 eq_rtol = 1e-5 # relative tolerance
 eq_atol = 1e-8 # absolute tolerance
-eq_nan = False # is NaN equal to NaN ?
+eq_nan = False # is NaN equal to NaN ?
 
 class _base(object):
     '''Base class for logic types
