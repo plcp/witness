@@ -7,7 +7,7 @@ import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 # default imports
-modules = ['logic',]
+modules = ['logic', 'error']
 def bootstrap(modules):
     for module in modules:
         __import__('pylacode.{}'.format(module))

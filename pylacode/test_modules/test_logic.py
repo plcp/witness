@@ -107,7 +107,7 @@ def run():
                     else:
                         _wi = str(w[i])
 
-                    if pl.logic.stable_warntext in _wi:
+                    if pl.error._stable_warntext in _wi:
                         _warns.append(w[i])
 
                 if len(_warns) < 1:
