@@ -7,6 +7,7 @@ import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 import numpy as np
+import traceback
 import warnings
 import inspect
 import random
@@ -90,7 +91,9 @@ def run():
         y = vtype.uniform(47)
         assert _similar(x.trust + y.trust, (x + y).trust)
 
+    # test numerically unstable assertions
     _success = False
+    failures = []
     for j in range(0, 24):
         with warnings.catch_warnings(record=True) as w:
             warnings.simplefilter('always')
@@ -99,6 +102,9 @@ def run():
                 _unstable_tests()
                 _success = True
             except AssertionError as e:
+                e.exc_info = sys.exc_info()
+                failures.append(e)
+
                 _warns = []
                 for i in range(0, len(w)):
                     _wi = None
@@ -116,7 +122,10 @@ def run():
         if _success:
             break
 
+    # raise an AssertionError if we fail to converge
     if not _success:
+        for e in failures:
+            traceback.print_exception(*e.exc_info)
         raise AssertionError('Numerically unstable operations failed '
             + '{} times in a row'.format(j + 1))
 
