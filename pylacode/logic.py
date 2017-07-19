@@ -42,6 +42,8 @@ class _base(object):
         ('__imul__', '__rmul__'),
         ('__idiv__', '__div__'),
         ('__idiv__', '__truediv__'),
+        ('__iand__', '__and__'),
+        ('__ior__', '__or__'),
     )
 
     def __init__(self, other=None, size=None):
@@ -194,6 +196,12 @@ class _base(object):
         _value = [v[slice_or_index] for v in self.value]
         return self.__class__(tuple(_value))
 
+    def __iand__(self, other):
+        raise NotImplementedError
+
+    def __ior__(self, other):
+        raise NotImplementedError
+
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
 
@@ -316,6 +324,46 @@ class obsl(_base):
         self.value = (_belief, _disbelief, _uncertainty, self.apriori)
         return self
 
+    def __iand__(self, other):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+
+        _disbelief = (1. - self.disbelief) * (other.disbelief - 1.) + 1.
+        _apriori = self.apriori * other.apriori
+
+        norm = pl.error.try_inverse(1. - _apriori)
+        spare_lrate = (1. - self.apriori) * norm
+        spare_rrate = (1. - other.apriori) * norm
+
+        _uncertainty = self.uncertainty * other.uncertainty
+        _uncertainty += other.belief * self.uncertainty * spare_lrate
+        _uncertainty += self.belief * other.uncertainty * spare_rrate
+
+        _belief = 1. - _uncertainty - _disbelief
+        self.value = (_belief, _disbelief, _uncertainty, _apriori)
+        return self
+
+    def __ior__(self, other):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+
+        _belief = (1. - self.belief) * (other.belief - 1.) + 1.
+        _apriori = (1. - self.apriori) * (other.apriori - 1.) + 1.
+
+        norm = pl.error.try_inverse(_apriori)
+        spare_lrate = self.apriori * norm
+        spare_rrate = other.apriori * norm
+
+        _uncertainty = self.uncertainty * other.uncertainty
+        _uncertainty += other.disbelief * self.uncertainty * spare_lrate
+        _uncertainty += self.disbelief * other.uncertainty * spare_rrate
+
+        _disbelief = 1. - _uncertainty - _belief
+        self.value = (_belief, _disbelief, _uncertainty, _apriori)
+        return self
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -419,6 +467,55 @@ class tbsl(_base):
         _confidence *= norm
 
         self.value = (_truth, _confidence, self.apriori)
+        return self
+
+    def __iand__(self, other):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+        _apriori = (1. + self.apriori) * (1. + other.apriori) / 2. - 1.
+
+        norm = pl.error.try_inverse(1. - _apriori)
+        spare_lrate = (1. - self.apriori) * norm
+        spare_rrate = (1. - other.apriori) * norm
+
+        sc = 1. - self.confidence
+        oc = 1. - other.confidence
+
+        _confidence = 1. - sc * oc
+        _confidence -= (other.confidence + other.truth) * sc * spare_lrate / 2.
+        _confidence -= (self.confidence + self.truth) * oc * spare_rrate / 2.
+
+        _truth = self.truth + other.truth
+        _truth += _confidence - self.confidence - other.confidence
+        _truth += (sc + self.truth - 1.) * (oc + other.truth - 1.) / 2.
+
+        self.value = (_truth, _confidence, _apriori)
+        return self
+
+    def __ior__(self, other):
+        assert other.__class__ in types
+        if not isinstance(other, self.__class__):
+            other = other.cast_to(self.__class__)
+
+        _apriori = (1. - self.apriori) * (other.apriori - 1.) / 2. + 1.
+
+        norm = pl.error.try_inverse(1. + _apriori)
+        spare_lrate = (1 + self.apriori) * norm
+        spare_rrate = (1 + other.apriori) * norm
+
+        sc = 1. - self.confidence
+        oc = 1. - other.confidence
+
+        _confidence = 1. - sc * oc
+        _confidence -= (other.confidence - other.truth) * sc * spare_lrate / 2.
+        _confidence -= (self.confidence - self.truth) * oc * spare_rrate / 2.
+
+        _truth = self.truth + other.truth
+        _truth -= _confidence - self.confidence - other.confidence
+        _truth -= (self.truth - sc + 1.) * (other.truth - oc + 1.) / 2.
+
+        self.value = (_truth, _confidence, _apriori)
         return self
 
 class ebsl(_base):
@@ -528,6 +625,20 @@ class ebsl(_base):
         _negative = other * self.negative
 
         self.value = (_positive, _negative, self.apriori)
+        return self
+
+    def __iand__(self, other, prior=ebsl_prior):
+        n = self.cast_to(obsl, prior=prior)
+        n &= other
+
+        self.value = n.cast_to(ebsl, prior=prior).value
+        return self
+
+    def __ior__(self, other, prior=ebsl_prior):
+        n = self.cast_to(obsl, prior=prior)
+        n |= other
+
+        self.value = n.cast_to(ebsl, prior=prior).value
         return self
 
 def describe_likelihood(scalar):

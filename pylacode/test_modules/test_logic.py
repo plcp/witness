@@ -15,7 +15,8 @@ import sys
 
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability', 'alpha', 'beta',
-            'weight', '__iadd__', 'trust', '__imul__', '__idiv__']
+            'weight', '__iadd__', 'trust', '__imul__',
+            '__idiv__', '__iand__', '__ior__']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
