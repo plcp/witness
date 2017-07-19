@@ -6,20 +6,21 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
+import traceback
 import warnings
 import numpy as np
 
 # Stable Residual (used when numeric instability can't be avoided)
-_stable_residual = 1e-30
+_stable_residual = 1e-12
 
 # Warnings text
 _stable_warntext = ('Numerically unstable calculus suppressed '
     + '(obtained values may not be meaningful).')
-_unrecov_failure = ('Unrecoverable failure during numerical instability handling '
+_unrecov_failure = ('Unrecoverable failure during numerical instability '
+    + 'handling '
     + '(likely to be caused by NaN values, see `pylacode.error.state`).')
 
 last_warning = None
-
 class _state:
     inverse_suppress = True
     inverse_nan = True
@@ -27,11 +28,13 @@ class _state:
 state = _state()
 
 def warn(text):
+    global last_warning
     last_warning = text
     warnings.warn(text, RuntimeWarning)
 
 def try_inverse(vector):
     assert isinstance(vector, np.ndarray)
+    global last_warning
     last_warning = None 
 
     inverse = None
@@ -63,9 +66,11 @@ def try_inverse(vector):
                 if state.inverse_nan:
                     result[_nans] = vector[_nans]
 
+                _vector[_invalids] = np.sign(_vector[_invalids]) * float('inf')
                 return result
         except FloatingPointError as f:
             if not state.quiet:
+                traceback.print_exc()
                 warn(_unrecov_failure)
     
         raise e # Unable to recover from/suppress numerical instability
