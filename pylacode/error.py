@@ -66,7 +66,7 @@ def try_inverse(vector):
                 if state.inverse_nan:
                     result[_nans] = vector[_nans]
 
-                _vector[_invalids] = np.sign(_vector[_invalids]) * float('inf')
+                result[_invalids] = np.sign(_vector[_invalids]) * float('inf')
                 return result
         except FloatingPointError as f:
             if not state.quiet:
