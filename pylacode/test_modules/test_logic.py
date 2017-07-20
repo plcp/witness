@@ -137,10 +137,25 @@ def run():
     return True
 
 def _unstable_tests():
-    # test distributivity of discounting upon consensus
+    # test basic discounting
     for vtype in test_types:
-        x, y, z = [vtype.uniform(601) for _ in range(0, 3)]
+        x, y = pl.logic.uniform(599, 2, vtype)
+        assert x * y.trust == x * y
+        assert not x * y.trust == y * x
+        assert not x * y == y * x
+
+    # test left/right-distributivity of discounting upon consensus
+    for vtype in test_types:
+        x, y, z = pl.logic.uniform(607, 3, vtype)
         assert (x * z) + (y * z) == (x + y) * z
+        assert (z * x) + (z * y) == z * (x + y)
+
+    # test weak commutativity and associativity
+    for vtype in test_types:
+        x, y, z = pl.logic.uniform(601, 3, vtype)
+        assert (x * y * z) == (x * z * y)
+        assert not (x * y * z) == (y * x * z)
+        assert x * (y * z) == (x * y) * z
 
     # test if scalar product « by n » == « x + x + … + x » (n times)
     for vtype in test_types:
@@ -149,9 +164,9 @@ def _unstable_tests():
         assert x * 3 == x + x + x
         assert 2 * x * 2 == x + x + x + x
 
-    # test various calculus upon product
+    # test various calculus upon product & trust
     for vtype in test_types:
-        x, y, z = [vtype.uniform(463) for _ in range(0, 3)]
+        x, y, z = pl.logic.uniform(463, 3, vtype)
         assert x / 2 == (x * 2) / 4
         assert (x * y) / y == x
         assert (((x * 2) / y) / 2) * y == x
@@ -260,7 +275,7 @@ def _check_op(op_name):
     for vtype in vtypes:
         op = _get_op_from_name(vtype, op_name)
         nargs = _get_parameter_count(op)
-        args = [vtype.uniform(width) for _ in range(0, nargs)]
+        args = pl.logic.uniform(width, nargs, vtype)
         assert _check_op_forall(op_name, args)
 
     return True

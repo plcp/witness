@@ -712,6 +712,12 @@ def describe(_this):
         return _begin + ", but it's " + _end
     return _begin + ", and it's " + _end
 
+def uniform(size, count=1, vtype=obsl):
+    if count == 1:
+        return [vtype.uniform(size)]
+    else:
+        return [vtype.uniform(size) for _ in range(0, count)]
+
 types = (obsl, tbsl, ebsl)
 for vtype in types:
     for dtype in types:
