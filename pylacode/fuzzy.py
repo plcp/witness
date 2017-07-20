@@ -48,8 +48,8 @@ class fe:
     def __init__(self,
         value=None,
         size=None,
-        merge_operator=operator.add,
         source=default_source,
+        merge_operator=operator.add,
         **mdata):
 
         if value is None:
@@ -66,3 +66,26 @@ class fe:
         self.uuid = create_uuid(source)
         self.meta = dict(**mdata)
         self.uid = _local_occuring_uid
+
+    def __lshift__(self, other):
+        assert isinstance(other, fe)
+        assert len(self.value) == len(other.value)
+
+        value = self.merge_operator(self.value, other.value)
+        source = None
+        if self.source == other.source:
+            source = self.source
+        else:
+            names = [self.source, other.source]
+            names = sorted(names)
+            source = 'merge<{}>({},{})'.format(
+                self.merge_operator.__name__, names[0], names[1])
+
+        mdata = {
+            'merge_operator': self.merge_operator,
+            'left': self,
+            'right': other}
+        fe(value=value,
+            source=source,
+            merge_operator=self.merge_operator,
+            mdata=mdata)
