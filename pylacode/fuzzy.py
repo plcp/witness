@@ -9,6 +9,7 @@ assert sys.version_info >= (2, 7)
 import time
 import hashlib
 import binascii
+import warnings
 
 _local_occuring_uid = 0
 
@@ -41,11 +42,20 @@ def create_uuid(source):
     _local_occuring_uid += 1
     return s
 
+default_source = 'default_source' # no source provided
 class fe:
-    def __init__(self, size, source=None, **metadata):
+    def __init__(self, value=None, size=None, source=default_source, **mdata):
         global _local_occuring_uid
         self.source = source
-        self.value = pl.logic.obsl(size=size)
+
+        if value is None:
+            assert size is not None # if value is None, then size must be given
+            self.value = pl.logic.obsl(size=size)
+        else:
+            self.value = value
+            if size is not None:
+                warnings.warn('Size given but ignored')
+
         self.uuid = create_uuid(source)
-        self.meta = dict(**metadata)
+        self.meta = dict(**mdata)
         self.uid = _local_occuring_uid
