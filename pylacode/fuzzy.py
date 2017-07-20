@@ -10,6 +10,7 @@ import time
 import hashlib
 import binascii
 import warnings
+import operator
 
 _local_occuring_uid = 0
 
@@ -44,9 +45,12 @@ def create_uuid(source):
 
 default_source = 'default_source' # no source provided
 class fe:
-    def __init__(self, value=None, size=None, source=default_source, **mdata):
-        global _local_occuring_uid
-        self.source = source
+    def __init__(self,
+        value=None,
+        size=None,
+        merge_operator=operator.add,
+        source=default_source,
+        **mdata):
 
         if value is None:
             assert size is not None # if value is None, then size must be given
@@ -56,6 +60,9 @@ class fe:
             if size is not None:
                 warnings.warn('Size given but ignored')
 
+        global _local_occuring_uid
+        self.merge_operator = merge_operator
+        self.source = source
         self.uuid = create_uuid(source)
         self.meta = dict(**mdata)
         self.uid = _local_occuring_uid
