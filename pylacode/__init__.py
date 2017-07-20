@@ -6,6 +6,9 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
+# api version
+api_version = (0, 0, 1)
+
 # default imports
 modules = ['logic', 'error']
 def bootstrap(modules):
