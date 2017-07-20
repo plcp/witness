@@ -34,6 +34,7 @@ class _base(object):
         ('probability', 'p'),
         ('weight', 'w'),
         ('trust', 't'),
+        ('common_belief', 'c'),
     )
     bycopy_ops = (
         ('invert', '__invert__'),
@@ -309,6 +310,10 @@ class obsl(_base):
         result = (brate + arate) / iw
         return result
 
+    @property
+    def common_belief(self, prior=ebsl_prior):
+        return self.belief
+
     def __imul__(self, other):
         if not isinstance(other, np.ndarray):
             return _base.__imul__(self, other)
@@ -454,6 +459,10 @@ class tbsl(_base):
 
         result = (brate + arate) / iw
         return result
+
+    @property
+    def common_belief(self, prior=ebsl_prior):
+        return (self.truth + self.confidence) / 2.0
 
     def __imul__(self, other):
         if not isinstance(other, np.ndarray):
@@ -616,6 +625,10 @@ class ebsl(_base):
 
         result = (brate + arate) / iw
         return result
+
+    @property
+    def common_belief(self, prior=ebsl_prior):
+        return self.positive / self.w(prior)
 
     def __imul__(self, other):
         if not isinstance(other, np.ndarray):

@@ -23,6 +23,7 @@ _unrecov_failure = ('Unrecoverable failure during numerical instability '
 last_warning = None
 class _state:
     inverse_suppress = True
+    inverse_inf = True
     inverse_nan = True
     quiet = False
 state = _state()
@@ -34,7 +35,7 @@ def warn(text):
 
 def try_inverse(vector):
     assert isinstance(vector, np.ndarray)
-    global last_warning
+    global last_warning, state
     last_warning = None 
 
     inverse = None
@@ -66,7 +67,9 @@ def try_inverse(vector):
                 if state.inverse_nan:
                     result[_nans] = vector[_nans]
 
-                result[_invalids] = np.sign(_vector[_invalids]) * float('inf')
+                if state.inverse_inf:
+                    result[_invalids] = (np.sign(_vector[_invalids])
+                        * float('inf'))
                 return result
         except FloatingPointError as f:
             if not state.quiet:

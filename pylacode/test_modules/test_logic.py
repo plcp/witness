@@ -16,7 +16,7 @@ import sys
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability', 'alpha', 'beta',
             'weight', '__iadd__', 'trust', '__imul__',
-            '__idiv__', '__iand__', '__ior__']
+            '__idiv__', '__iand__', '__ior__', 'c']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
@@ -27,6 +27,9 @@ def _similar(a, b):
 
 # run tests
 def run():
+    # test without infinity-semantics (cause NaNs)
+    pl.error.state.inverse_inf = False
+
     # test basic constructor
     for vtype in test_types:
         vtype(size=5)
@@ -92,6 +95,18 @@ def run():
         y = vtype.uniform(47)
         assert _similar(x.trust + y.trust, (x + y).trust)
 
+    # test various properties of and & or
+    for vtype in test_types:
+        x = vtype.uniform(101)
+        y = vtype.uniform(101)
+        assert ~(~x | ~y) == x & y
+        assert ~(~x & ~y) == x | y
+
+        minxp = np.minimum(x.p(), (~x).p())
+        maxxp = np.maximum(x.p(), (~x).p())
+        assert (minxp > (x & ~x).p()).all()
+        assert (maxxp < (x | ~x).p()).all()
+
     # test numerically unstable assertions
     _success = False
     failures = []
@@ -118,6 +133,7 @@ def run():
                         _warns.append(w[i])
 
                 if len(_warns) < 1:
+                    traceback.print_exception(*e.exc_info)
                     raise AssertionError('No warning raised when '
                         + 'assertion failed: {}, {} '.format(str(w), e))
         if _success:
