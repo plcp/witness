@@ -6,6 +6,7 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
+import pylacode.error
 import numpy as np
 
 # Non-informative prior weight

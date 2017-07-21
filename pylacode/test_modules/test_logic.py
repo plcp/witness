@@ -6,6 +6,8 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
+import pylacode.logic
+import pylacode.error
 import numpy as np
 import traceback
 import warnings

@@ -9,13 +9,6 @@ assert sys.version_info >= (2, 7)
 # api version
 api_version = (0, 0, 1)
 
-# default imports
-modules = ['logic', 'error']
-def bootstrap(modules):
-    for module in modules:
-        __import__('pylacode.{}'.format(module))
-bootstrap(modules)
-
 # test class
 class test:
     test_list = ["logic",]
