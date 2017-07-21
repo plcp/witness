@@ -44,7 +44,7 @@ def create_uuid(source):
     return s
 
 default_source = 'default_source' # no source provided
-class fe:
+class evidence:
     def __init__(self,
         value=None,
         size=None,
@@ -68,7 +68,7 @@ class fe:
         self.uid = _local_occuring_uid
 
     def __lshift__(self, other):
-        assert isinstance(other, fe)
+        assert isinstance(other, evidence)
         assert len(self.value) == len(other.value)
 
         value = self.merge_operator(self.value, other.value)
@@ -85,7 +85,7 @@ class fe:
             'merge_operator': self.merge_operator,
             'left': self,
             'right': other}
-        fe(value=value,
+        evidence(value=value,
             source=source,
             merge_operator=self.merge_operator,
             mdata=mdata)
