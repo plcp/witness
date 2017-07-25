@@ -116,12 +116,16 @@ class _base(object):
         raise NotImplementedError
 
     @staticmethod
-    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+    def uniform(size, _min=0, _max=None, prior=None, mu=None):
         raise NotImplementedError
 
     @staticmethod
-    def inert_weight(prior=ebsl_prior, min_u=min_uncertainty):
-        return prior * (1 - min_uncertainty) / min_uncertainty
+    def inert_weight(prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+        return prior * (1 - mu) / mu
 
     def cast_to(self, other):
         assert other in types
@@ -138,8 +142,14 @@ class _base(object):
     def __len__(self):
         return self.size
 
-    def __eq__(self, other, rtol=eq_rtol, atol=eq_atol, equal_nan=eq_nan):
+    def __eq__(self, other, rtol=None, atol=None, equal_nan=None):
         assert other.__class__ in types
+        if rtol is None:
+            rtol = eq_rtol
+        if atol is None:
+            atol = eq_atol
+        if equal_nan is None:
+            equal_nan = eq_nan
 
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
@@ -155,21 +165,25 @@ class _base(object):
     def probability(self):
         raise NotImplementedError
 
-    def alpha(self, prior=ebsl_prior):
+    def alpha(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
         return self.cast_to(ebsl, prior=prior).alpha(prior=prior)
 
-    def beta(self, prior=ebsl_prior):
+    def beta(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
         return self.cast_to(ebsl, prior=prior).beta(prior=prior)
 
     @property
-    def weight(self, prior=ebsl_prior):
+    def weight(self, prior=None):
         raise NotImplementedError
 
-    def __iadd__(self, other, prior=ebsl_prior):
+    def __iadd__(self, other, prior=None):
         raise NotImplementedError
 
     @property
-    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+    def trust(self, prior=None, mu=None, tt=None):
         raise NotImplementedError
 
     def __imul__(self, other):
@@ -219,7 +233,12 @@ class obsl(_base):
         self.value = (_belief, _disbelief, _uncertainty, _apriori)
 
     @staticmethod
-    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+    def uniform(size, _min=0, _max=None, prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+
         if _max is None:
             _max = 1.0 - mu
         low, high = (1. - _max, 1. - _min)
@@ -236,7 +255,10 @@ class obsl(_base):
 
         return obsl((_belief, _disbelief, _uncertainty, _apriori))
 
-    def cast_to(self, other, prior=ebsl_prior):
+    def cast_to(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = _base.cast_to(self, other)
         if isinstance(n, obsl):
             pass
@@ -263,11 +285,17 @@ class obsl(_base):
         return self.belief + self.apriori * self.uncertainty
 
     @property
-    def weight(self, prior=ebsl_prior):
+    def weight(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         norm = pl.error.try_inverse(self.uncertainty)
         return prior * norm
 
-    def __iadd__(self, other, prior=ebsl_prior):
+    def __iadd__(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         assert other.__class__ in types
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
@@ -298,7 +326,13 @@ class obsl(_base):
         return self
 
     @property
-    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+    def trust(self, prior=None, mu=None, tt=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+        if tt is None:
+            tt = trust_threshold
         iw = self.inert_weight(prior, mu)
 
         scale = tt * mu
@@ -312,7 +346,7 @@ class obsl(_base):
         return result
 
     @property
-    def common_belief(self, prior=ebsl_prior):
+    def common_belief(self, prior=None):
         return self.belief
 
     def __imul__(self, other):
@@ -377,7 +411,12 @@ class tbsl(_base):
     value_names = ['truth', 'confidence', 'apriori']
 
     @staticmethod
-    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+    def uniform(size, _min=0, _max=None, prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+
         if _max is None:
             _max = 1.0 - mu
 
@@ -394,7 +433,10 @@ class tbsl(_base):
 
         self.value = (_truth, _confidence, _apriori)
 
-    def cast_to(self, other, prior=ebsl_prior):
+    def cast_to(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = _base.cast_to(self, other)
         if isinstance(n, tbsl):
             pass
@@ -433,11 +475,17 @@ class tbsl(_base):
             - self.apriori * self.confidence) / 2.0
 
     @property
-    def weight(self, prior=ebsl_prior):
+    def weight(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         norm = pl.error.try_inverse(1. - self.confidence)
         return prior * norm
 
-    def __iadd__(self, other, prior=ebsl_prior):
+    def __iadd__(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = self.cast_to(ebsl)
         n += other
 
@@ -445,7 +493,13 @@ class tbsl(_base):
         return self
 
     @property
-    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+    def trust(self, prior=None, mu=None, tt=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+        if tt is None:
+            tt = trust_threshold
         iw = self.inert_weight(prior, mu)
 
         scale = tt * mu
@@ -462,7 +516,10 @@ class tbsl(_base):
         return result
 
     @property
-    def common_belief(self, prior=ebsl_prior):
+    def common_belief(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return (self.truth + self.confidence) / 2.0
 
     def __imul__(self, other):
@@ -542,7 +599,10 @@ class ebsl(_base):
         self.value = (_positive, _negative, _apriori)
 
     @staticmethod
-    def uniform(size, _min=0, _max=None, prior=ebsl_prior, mu=min_uncertainty):
+    def uniform(size, _min=0, _max=None, prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+
         if _max is None:
             _max = _base.inert_weight(prior, mu) / 2.0
 
@@ -552,7 +612,10 @@ class ebsl(_base):
 
         return ebsl((_positive, _negative, _apriori))
 
-    def cast_to(self, other, prior=ebsl_prior):
+    def cast_to(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = _base.cast_to(self, other)
         if isinstance(n, ebsl):
             pass
@@ -577,21 +640,36 @@ class ebsl(_base):
         return self
 
     @property
-    def probability(self, prior=ebsl_prior):
+    def probability(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return (self.positive + self.apriori * prior
             ) / self.w(prior)
 
-    def alpha(self, prior=ebsl_prior):
+    def alpha(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return self.positive + prior * self.apriori
 
-    def beta(self, prior=ebsl_prior):
+    def beta(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return self.negative + prior * (1.0 - self.apriori)
 
     @property
-    def weight(self, prior=ebsl_prior):
+    def weight(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return self.negative + self.positive + prior
 
-    def __iadd__(self, other, prior=ebsl_prior):
+    def __iadd__(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         assert other.__class__ in types
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
@@ -614,7 +692,13 @@ class ebsl(_base):
         return self
 
     @property
-    def trust(self, prior=ebsl_prior, mu=min_uncertainty, tt=trust_threshold):
+    def trust(self, prior=None, mu=None, tt=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+        if tt is None:
+            tt = trust_threshold
         iw = self.inert_weight(prior, mu)
 
         scale = tt * mu
@@ -628,7 +712,10 @@ class ebsl(_base):
         return result
 
     @property
-    def common_belief(self, prior=ebsl_prior):
+    def common_belief(self, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         return self.positive / self.w(prior)
 
     def __imul__(self, other):
@@ -641,14 +728,20 @@ class ebsl(_base):
         self.value = (_positive, _negative, self.apriori)
         return self
 
-    def __iand__(self, other, prior=ebsl_prior):
+    def __iand__(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = self.cast_to(obsl, prior=prior)
         n &= other
 
         self.value = n.cast_to(ebsl, prior=prior).value
         return self
 
-    def __ior__(self, other, prior=ebsl_prior):
+    def __ior__(self, other, prior=None):
+        if prior is None:
+            prior = ebsl_prior
+
         n = self.cast_to(obsl, prior=prior)
         n |= other
 
