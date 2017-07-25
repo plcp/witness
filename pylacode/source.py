@@ -92,6 +92,12 @@ class default_source(_base_source):
     prop = None
 default = default_source()
 
+class named_source(_base_source):
+    prop = None
+    def __init__(self, name, **mdata):
+        _base_source.__init__(self, **mdata)
+        self.name = name
+
 class merge_source(_base_source):
     name = 'merge'
     prop = 'op'
