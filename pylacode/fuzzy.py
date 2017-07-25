@@ -14,6 +14,8 @@ import hashlib
 import random
 import time
 
+logic_type = pl.logic.tbsl
+
 _local_occuring_uid = 0
 
 uuid_magic = '49e'
@@ -64,11 +66,13 @@ class evidence:
 
         if value is None:
             assert size is not None # if value is None, then size must be given
-            self.value = pl.logic.tbsl(size=size)
+            self.value = logic_type(size=size)
+            self.size = size
         else:
-            self.value = value
+            self.value = logic_type(value)
             if size is not None:
                 warnings.warn('Size given but ignored')
+            self.size = len(value)
 
         global _local_occuring_uid
         self.merge_operator = merge_operator
