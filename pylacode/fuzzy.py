@@ -11,12 +11,18 @@ import binascii
 import warnings
 import operator
 import hashlib
+import random
 import time
 
 _local_occuring_uid = 0
 
 uuid_magic = '49e'
-uuid_session = pl.logic.np.random.rand().hex()[4:10]
+uuid_session = None
+def reset_session():
+    global uuid_session
+    uuid_session = random.uniform(0, 1).hex()[4:10]
+reset_session()
+
 def create_uuid(source):
     global _local_occuring_uid
 
@@ -32,7 +38,7 @@ def create_uuid(source):
     s += '-{}'.format(hashlib.sha224(src).hexdigest()[-6:])
     s += '-%08x' % int(time.time())
     s += '-%08x' % _local_occuring_uid
-    s += '-' + pl.logic.np.random.rand().hex()[4:10]
+    s += '-' + random.uniform(0, 1).hex()[4:10]
 
     src = None
     if sys.version_info < (3,):
