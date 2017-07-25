@@ -1,2 +1,6 @@
 *.pyc
 *__pycache__*
+*.swp
+*venv*
+_*.py
+_*.sh
