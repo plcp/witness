@@ -6,11 +6,12 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
-import time
-import hashlib
+import pylacode.source
 import binascii
 import warnings
 import operator
+import hashlib
+import time
 
 _local_occuring_uid = 0
 
@@ -21,9 +22,9 @@ def create_uuid(source):
 
     src = None
     if sys.version_info < (3,):
-        src = source.decode('utf8')
+        src = str(source).decode('utf8')
     else:
-        src = bytes(source, 'utf8')
+        src = bytes(str(source), 'utf8')
 
     s = uuid_magic
     s += '-%x%x%02x' % pl.api_version
@@ -43,14 +44,17 @@ def create_uuid(source):
     _local_occuring_uid += 1
     return s
 
-default_source = 'default_source' # no source provided
 class evidence:
     def __init__(self,
         value=None,
         size=None,
-        source=default_source,
+        source=None,
         merge_operator=operator.add,
         **mdata):
+
+        if source is None:
+            source = pl.source.default
+        assert issubclass(source.__class__, pl.source._base_source)
 
         if value is None:
             assert size is not None # if value is None, then size must be given
@@ -63,8 +67,8 @@ class evidence:
         global _local_occuring_uid
         self.merge_operator = merge_operator
         self.source = source
+        self.mdata = dict(**mdata)
         self.uuid = create_uuid(source)
-        self.meta = dict(**mdata)
         self.uid = _local_occuring_uid
 
     def __lshift__(self, other):
@@ -76,16 +80,13 @@ class evidence:
         if self.source == other.source:
             source = self.source
         else:
-            names = [self.source, other.source]
-            names = sorted(names)
-            source = 'merge<{}>({},{})'.format(
-                self.merge_operator.__name__, names[0], names[1])
+            source = pl.source.merge_source(
+                op=self.merge_operator,
+                left=self.source,
+                right=other.source)
 
-        mdata = {
-            'merge_operator': self.merge_operator,
-            'left': self,
-            'right': other}
-        evidence(value=value,
+        return evidence(
+            value=value,
             source=source,
             merge_operator=self.merge_operator,
-            mdata=mdata)
+            **self.mdata)
