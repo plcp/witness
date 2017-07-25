@@ -58,7 +58,7 @@ class evidence:
 
         if value is None:
             assert size is not None # if value is None, then size must be given
-            self.value = pl.logic.obsl(size=size)
+            self.value = pl.logic.tbsl(size=size)
         else:
             self.value = value
             if size is not None:
