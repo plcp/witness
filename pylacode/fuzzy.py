@@ -37,9 +37,9 @@ def create_uuid(source):
     s = uuid_magic
     s += '-%x%x%02x' % pl.api_version
     s += '-' + uuid_session
+    s += '-%08x' % _local_occuring_uid
     s += '-{}'.format(hashlib.sha224(src).hexdigest()[-6:])
     s += '-%08x' % int(time.time())
-    s += '-%08x' % _local_occuring_uid
     s += '-' + random.uniform(0, 1).hex()[4:10]
 
     src = None

@@ -7,7 +7,7 @@ import pylacode as pl
 assert sys.version_info >= (2, 7)
 
 # api version
-api_version = (0, 0, 1)
+api_version = (0, 0, 2)
 
 # test class
 class test:
