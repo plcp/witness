@@ -75,13 +75,16 @@ class _base_source:
         return s
 
     def __repr__(self):
+        return self.__str__()
+
+    def dict(self):
         _dict = {str('name'): str(self.name)}
         if self._genericity is not None:
             _dict[str(self.prop)] = self._genericity
         for k, v in self._attributes.items():
             _dict[str(k)] = v
 
-        return str(_dict)
+        return _dict
 
     def __eq__(self, other):
         return str(self) == str(other)
