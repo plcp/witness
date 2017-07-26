@@ -14,7 +14,8 @@ class _base_source:
 
     def __init__(self, **mdata):
         _dict = dict(**mdata)
-        self._attributes = collections.OrderedDict(sorted(_dict.items()))
+        self._attributes = collections.OrderedDict(
+            sorted(_dict.items(), key=lambda x: x[0]))
         if self.prop is not None and self.prop in mdata:
             self._genericity = mdata[self.prop]
             del self._attributes[self.prop]
