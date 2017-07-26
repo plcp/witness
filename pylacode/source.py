@@ -28,7 +28,7 @@ def _to_string(target):
     except AttributeError:
         return target.__class__.__name__
 
-class _base_source:
+class _base_source(object):
     name = '_base'
     prop = 'genericity'
 
@@ -68,8 +68,7 @@ class _base_source:
             s += '()'
         else:
             _attr = []
-            for key in self._attributes:
-                value = self._attributes[key]
+            for key, value in self._attributes.items():
                 _attr.append(key + '=' + _to_string(value))
             s += '({})'.format(','.join(_attr))
         return s
