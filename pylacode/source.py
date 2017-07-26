@@ -45,24 +45,19 @@ class _base_source:
         if self.prop is not None:
             def _fget(self):
                 return self._genericity
-
-            if sys.version_info < (3,):
-                _fget.__name__ = str(self.prop)
-            else:
-                _fget.__name__ = self.prop
-            setattr(self.__class__, self.prop, property(_fget))
+            def _fset(self, value):
+                self._genericity = value
+            setattr(self.__class__, self.prop, property(_fget, _fset))
 
         for p in self._attributes:
             assert p[0] != '_'
 
             def _fget_p(self, _key=p):
                 return self._attributes[_key]
+            def _fset_p(self, value, _key=p):
+                self._attributes[_key] = value
 
-            if sys.version_info < (3,):
-                _fget_p.__name__ = str(p)
-            else:
-                _fget_p.__name__ = p
-            setattr(self.__class__, p, property(_fget_p))
+            setattr(self.__class__, p, property(_fget_p, _fset_p))
 
     def __str__(self):
         s = self.name
