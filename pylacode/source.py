@@ -46,7 +46,10 @@ class _base_source:
     def __str__(self):
         s = self.name
         if self._genericity is not None:
-            if isinstance(self._genericity, str):
+            if (sys.version_info < (3,)
+                and isinstance(self._genericity, unicode)):
+                s += '<{}>'.format(str(self._genericity))
+            elif isinstance(self._genericity, str):
                 s += '<{}>'.format(self._genericity)
             elif issubclass(self._genericity.__class__, _base_source):
                 s += '<{}>'.format(str(self._genericity))
@@ -62,7 +65,9 @@ class _base_source:
             _attr = []
             for key in self._attributes:
                 value = self._attributes[key]
-                if isinstance(value, str):
+                if sys.version_info < (3,) and isinstance(value, unicode):
+                    _attr.append(key + '=' + str(value))
+                elif isinstance(value, str):
                     _attr.append(key + '=' + value)
                 elif issubclass(value.__class__, _base_source):
                     _attr.append(key + '=' + str(value))
