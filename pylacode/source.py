@@ -8,6 +8,26 @@ assert sys.version_info >= (2, 7)
 
 import collections
 
+def _to_string(target):
+    if isinstance(target, str):
+        return target
+    elif isinstance(target, dict):
+        return ('{'
+            + ','.join([str(k)+':'+str(v) for k, v in (
+                    sorted(target.items(), key=lambda x: x[0]))
+            ]) + '}')
+    elif isinstance(target, tuple):
+        return '(' + ','.join([str(t) for t in target]) + ')'
+    elif issubclass(target.__class__, _base_source):
+        return str(target)
+    elif sys.version_info < (3,) and isinstance(target, unicode):
+        return str(target)
+
+    try:
+        return target.__name__
+    except AttributeError:
+        return target.__class__.__name__
+
 class _base_source:
     name = '_base'
     prop = 'genericity'
@@ -47,18 +67,7 @@ class _base_source:
     def __str__(self):
         s = self.name
         if self._genericity is not None:
-            if (sys.version_info < (3,)
-                and isinstance(self._genericity, unicode)):
-                s += '<{}>'.format(str(self._genericity))
-            elif isinstance(self._genericity, str):
-                s += '<{}>'.format(self._genericity)
-            elif issubclass(self._genericity.__class__, _base_source):
-                s += '<{}>'.format(str(self._genericity))
-            else:
-                try:
-                    s += '<{}>'.format(self._genericity.__name__)
-                except NameError:
-                    s += '<{}>'.format(self._genericity.__class__.__name__)
+            s += '<{}>'.format(_to_string(self._genericity))
 
         if len(self._attributes) < 1:
             s += '()'
@@ -66,18 +75,7 @@ class _base_source:
             _attr = []
             for key in self._attributes:
                 value = self._attributes[key]
-                if sys.version_info < (3,) and isinstance(value, unicode):
-                    _attr.append(key + '=' + str(value))
-                elif isinstance(value, str):
-                    _attr.append(key + '=' + value)
-                elif issubclass(value.__class__, _base_source):
-                    _attr.append(key + '=' + str(value))
-                else:
-                    try:
-                        _attr.append(key + '=' + value.__name__)
-                    except NameError:
-                        _attr.append(key + '=' + value.__class__.__name__)
-
+                _attr.append(key + '=' + _to_string(value))
             s += '({})'.format(','.join(_attr))
         return s
 
