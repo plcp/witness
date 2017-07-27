@@ -13,12 +13,12 @@ class _base_source(object):
     name = '_base'
     prop = 'genericity'
 
-    def __init__(self, **mdata):
-        _dict = dict(**mdata)
+    def __init__(self, **attributes):
+        _dict = dict(**attributes)
         self._attributes = collections.OrderedDict(
             sorted(_dict.items(), key=lambda x: x[0]))
-        if self.prop is not None and self.prop in mdata:
-            self._genericity = mdata[self.prop]
+        if self.prop is not None and self.prop in attributes:
+            self._genericity = attributes[self.prop]
             del self._attributes[self.prop]
         else:
             self._genericity = None
@@ -76,8 +76,8 @@ default = default_source()
 
 class named_source(_base_source):
     prop = None
-    def __init__(self, name, **mdata):
-        _base_source.__init__(self, **mdata)
+    def __init__(self, name, **attributes):
+        _base_source.__init__(self, **attributes)
         self.name = name
 
 class merge_source(_base_source):
