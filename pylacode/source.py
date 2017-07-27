@@ -6,27 +6,8 @@ import sys
 import pylacode as pl
 assert sys.version_info >= (2, 7)
 
+import pylacode.tools
 import collections
-
-def _to_string(target):
-    if isinstance(target, str):
-        return target
-    elif isinstance(target, dict):
-        return ('{'
-            + ','.join([str(k)+':'+str(v) for k, v in (
-                    sorted(target.items(), key=lambda x: x[0]))
-            ]) + '}')
-    elif isinstance(target, tuple):
-        return '(' + ','.join([str(t) for t in target]) + ')'
-    elif issubclass(target.__class__, _base_source):
-        return str(target)
-    elif sys.version_info < (3,) and isinstance(target, unicode):
-        return str(target)
-
-    try:
-        return target.__name__
-    except AttributeError:
-        return target.__class__.__name__
 
 class _base_source(object):
     name = '_base'
@@ -62,14 +43,14 @@ class _base_source(object):
     def __str__(self):
         s = self.name
         if self._genericity is not None:
-            s += '<{}>'.format(_to_string(self._genericity))
+            s += '<{}>'.format(pl.tools.to_str(self._genericity, _base_source))
 
         if len(self._attributes) < 1:
             s += '()'
         else:
             _attr = []
             for key, value in self._attributes.items():
-                _attr.append(key + '=' + _to_string(value))
+                _attr.append(key + '=' + pl.tools.to_str(value, _base_source))
             s += '({})'.format(','.join(_attr))
         return s
 
