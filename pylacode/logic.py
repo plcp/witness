@@ -23,6 +23,12 @@ eq_rtol = 1e-5 # relative tolerance
 eq_atol = 1e-8 # absolute tolerance
 eq_nan = False # is NaN equal to NaN ?
 
+def islogic(item):
+    try:
+        return issubclass(item.__class__, _base)
+    except AttributeError:
+        return False
+
 class _base(object):
     '''Base class for logic types
 

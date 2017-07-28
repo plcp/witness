@@ -62,7 +62,7 @@ class evidence:
 
         if source is None:
             source = pl.source.default
-        assert issubclass(source.__class__, pl.source._base_source)
+        assert pl.source.issource(source)
 
         if value is None:
             assert size is not None # if value is None, then size must be given

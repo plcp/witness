@@ -14,8 +14,8 @@ def run():
 
     # check the default source
     assert pl.source.default.name == 'default'
+    assert pl.source.issource(pl.source.default)
     assert isinstance(pl.source.default, pl.source.default_source)
-    assert issubclass(pl.source.default.__class__, pl.source._base_source)
 
     # construct named sources
     x = pl.source.named_source(name='what', other_metadata='some')
@@ -23,6 +23,10 @@ def run():
     assert y.more == 'again'
     assert x.name == 'what' and y.name == 'whom'
     assert x.other_metadata == 'some' and y.other_metadata
+
+    # test issource
+    assert pl.source.issource(x) and pl.source.issource(y)
+    assert not pl.source.issource(x.name) and not pl.source.issource(y.more)
 
     # check __str__
     assert str(x) == 'what(other_metadata=some)'

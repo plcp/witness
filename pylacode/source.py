@@ -9,6 +9,12 @@ assert sys.version_info >= (2, 7)
 import pylacode.tools
 import collections
 
+def issource(item):
+    try:
+        return issubclass(item.__class__, _base_source)
+    except AttributeError:
+        return False
+
 class _base_source(object):
     name = '_base'
     prop = 'genericity'

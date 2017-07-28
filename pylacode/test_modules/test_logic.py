@@ -46,6 +46,12 @@ def run():
             assert _similar(vx, vy)
             assert vx is not vy
 
+    # test islogic
+    for vtype in test_types:
+        x = vtype(size=5)
+        assert pl.logic.islogic(x)
+        assert not pl.logic.islogic(x.value)
+
     # test by-name getters and setters of internal value
     for vtype in test_types:
         x = vtype(size=7)
