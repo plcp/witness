@@ -118,6 +118,18 @@ class _base(object):
     def __repr__(self):
         return '{}@{}'.format(self.__str__(crop_to=1), hex(id(self)))
 
+    @staticmethod
+    def true(size=1, apriori=0.5, prior=None, mu=None):
+        raise NotImplementedError
+
+    @staticmethod
+    def false(size=1, apriori=0.5, prior=None, mu=None):
+        raise NotImplementedError
+
+    @staticmethod
+    def uncertain(size=1, apriori=0.5):
+        raise NotImplementedError
+
     def reset(self):
         raise NotImplementedError
 
@@ -229,6 +241,39 @@ class obsl(_base):
 
     '''
     value_names = ['belief', 'disbelief', 'uncertainty', 'apriori']
+
+    @staticmethod
+    def true(size=1, apriori=0.5, mu=None):
+        if mu is None:
+            mu = min_uncertainty
+
+        _uncertain = obsl.uncertain(size=size, apriori=apriori)
+
+        _belief, _disbelief, _uncertainty, _apriori = _uncertain
+        _belief, _uncertainty = (_uncertainty - mu), (_belief + mu)
+
+        return (_belief, _disbelief, _uncertainty, _apriori)
+
+    @staticmethod
+    def false(size=1, apriori=0.5, mu=None):
+        if mu is None:
+            mu = min_uncertainty
+
+        _uncertain = obsl.uncertain(size=size, apriori=apriori)
+
+        _belief, _disbelief, _uncertainty, _apriori = _uncertain
+        _disbelief, _uncertainty = (_uncertainty - mu), (_disbelief + mu)
+
+        return (_belief, _disbelief, _uncertainty, _apriori)
+
+    @staticmethod
+    def uncertain(size=1, apriori=0.5):
+        _belief = np.zeros(size)
+        _disbelief = np.zeros(size)
+        _uncertainty = np.ones(size)
+        _apriori = np.ones(size) * apriori
+
+        return (_belief, _disbelief, _uncertainty, _apriori)
 
     def reset(self, apriori=0.5):
         _belief = np.zeros(self.size)
@@ -432,6 +477,36 @@ class tbsl(_base):
 
         return tbsl((_truth, _confi, _apriori))
 
+    @staticmethod
+    def true(size=1, apriori=0, mu=None):
+        if mu is None:
+            mu = min_uncertainty
+
+        _truth = np.ones(size) - mu
+        _confidence = 1 - mu
+        _apriori = np.ones(size) * apriori
+
+        return (_truth, _confidence, _apriori)
+
+    @staticmethod
+    def false(size=1, apriori=0, mu=None):
+        if mu is None:
+            mu = min_uncertainty
+
+        _truth = -(np.ones(size) - mu)
+        _confidence = 1 - mu
+        _apriori = np.ones(size) * apriori
+
+        return (_truth, _confidence, _apriori)
+
+    @staticmethod
+    def uncertain(size=1, apriori=0):
+        _truth = np.zeros(size)
+        _confidence = np.zeros(size)
+        _apriori = np.ones(size) * apriori
+
+        return (_truth, _confidence, _apriori)
+
     def reset(self, apriori=0.0):
         _truth = np.zeros(self.size)
         _confidence = np.zeros(self.size)
@@ -596,6 +671,40 @@ class ebsl(_base):
 
     '''
     value_names = ['positive', 'negative', 'apriori']
+
+    @staticmethod
+    def true(size=1, apriori=0.5, prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+
+        _positive = np.ones(size) * _base.inert_weight(prior, mu)
+        _negative = np.zeros(size)
+        _apriori = np.ones(size) * apriori
+
+        return (_positive, _negative, _apriori)
+
+    @staticmethod
+    def false(size=1, apriori=0.5, prior=None, mu=None):
+        if prior is None:
+            prior = ebsl_prior
+        if mu is None:
+            mu = min_uncertainty
+
+        _positive = np.zeros(size)
+        _negative = np.ones(size) * _base.inert_weight(prior, mu)
+        _apriori = np.ones(size) * apriori
+
+        return (_positive, _negative, _apriori)
+
+    @staticmethod
+    def uncertain(size=1, apriori=0.5):
+        _positive = np.zeros(size)
+        _negative = np.zeros(size)
+        _apriori = np.ones(size) * apriori
+
+        return (_positive, _negative, _apriori)
 
     def reset(self, apriori=0.5):
         _positive = np.zeros(self.size)

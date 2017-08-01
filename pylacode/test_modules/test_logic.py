@@ -18,7 +18,8 @@ import sys
 test_types = pl.logic.types
 test_ops = ['__invert__', 'probability', 'alpha', 'beta',
             'weight', '__iadd__', 'trust', '__imul__',
-            '__idiv__', '__iand__', '__ior__', 'c']
+            '__idiv__', '__iand__', '__ior__', 'c', 'true',
+            'false', 'uncertain']
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
@@ -210,7 +211,11 @@ def _get_op_from_name(vtype, op_name):
 def _evaluate_op_with_vtype(op_name, vtype, values):
     op = _get_op_from_name(vtype, op_name)
     _values = [vtype(value) for value in values]
-    return op(*_values), (op_name, vtype, values)
+
+    result = op(*_values)
+    if isinstance(result, tuple) and isinstance(result[0], np.ndarray):
+        result = vtype(result)
+    return result, (op_name, vtype, values)
 
 def _evaluate_op_forall(op_name, values):
     results = []
