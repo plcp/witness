@@ -276,12 +276,7 @@ class obsl(_base):
         return (_belief, _disbelief, _uncertainty, _apriori)
 
     def reset(self, apriori=0.5):
-        _belief = np.zeros(self.size)
-        _disbelief = np.zeros(self.size)
-        _uncertainty = np.ones(self.size)
-        _apriori = np.ones(self.size) * apriori
-
-        self.value = (_belief, _disbelief, _uncertainty, _apriori)
+        self.value = self.uncertain(self.size, apriori=apriori)
 
     @staticmethod
     def uniform(size, _min=0, _max=None, prior=None, mu=None):
@@ -508,11 +503,7 @@ class tbsl(_base):
         return (_truth, _confidence, _apriori)
 
     def reset(self, apriori=0.0):
-        _truth = np.zeros(self.size)
-        _confidence = np.zeros(self.size)
-        _apriori = np.ones(self.size) * apriori
-
-        self.value = (_truth, _confidence, _apriori)
+        self.value = self.uncertain(self.size, apriori=apriori)
 
     def cast_to(self, other, prior=None):
         if prior is None:
@@ -707,11 +698,7 @@ class ebsl(_base):
         return (_positive, _negative, _apriori)
 
     def reset(self, apriori=0.5):
-        _positive = np.zeros(self.size)
-        _negative = np.zeros(self.size)
-        _apriori = np.ones(self.size) * apriori
-
-        self.value = (_positive, _negative, _apriori)
+        self.value = self.uncertain(self.size, apriori=apriori)
 
     @staticmethod
     def uniform(size, _min=0, _max=None, prior=None, mu=None):
