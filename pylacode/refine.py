@@ -47,7 +47,15 @@ class label(data):
             assert pl.source.issource(source)
             self.source = source
 
-    def add(self, label, *labels):
+    def add(self, *labels):
+        label = None
+        if len(labels) == 1:
+            label = labels[0]
+        else:
+            for label in labels:
+                self.add(label)
+            return
+
         if isinstance(label, tuple):
             if len(label) >= 2:
                 assert isinstance(label[0], type(''))
@@ -76,11 +84,8 @@ class label(data):
 
             self.labels[label] = (_value, _slice)
         else:
-            raise AssertionError('Unable to use {} to construct a label'.format(
-                label))
-
-        for _remaining in labels:
-            self.add(_remaining)
+            raise AssertionError(
+                'Unable to use {} to construct a label'.format(label))
 
     def get_label(self, label):
         if label not in self.labels:
