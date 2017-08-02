@@ -1,15 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
 import sys
+
 import pylacode as pl
+
 assert sys.version_info >= (2, 7)
 
 # api version
 api_version = (0, 0, 2)
 
 # test class
+
+
 class test:
     test_list = ['logic', 'source', 'fuzzy', 'refine']
 

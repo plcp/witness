@@ -1,14 +1,16 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
+import copy
 import sys
+import weakref
+
 import pylacode as pl
+import pylacode.refine
+
 assert sys.version_info >= (2, 7)
 
-import pylacode.refine
-import weakref
-import copy
 
 class translation(object):
     def __init__(self, backends):
@@ -75,15 +77,15 @@ class translation(object):
         self.active_backend = backend
 
         if self.execute():
-            self.previous_state = previous_state
+            self.previous_state = weakref.ref(previous_state)
         return True
 
     def digest(self,
-            *payloads,
-            inverse=False,
-            retain_history=False,
-            reset=True,
-            **mdata):
+               *payloads,
+               inverse=False,
+               retain_history=False,
+               reset=True,
+               **mdata):
         self.prepare(*payloads, inverse=inverse, reset=reset, **mdata)
         while self.iterate(retain_history=retain_history):
             pass

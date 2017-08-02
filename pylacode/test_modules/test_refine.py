@@ -47,7 +47,11 @@ def run():
             + 'data with more backend '
             + '(id: more{}).'.format(object.__repr__(re)))
 
-        re.inverse(3)
+        try:
+            re.inverse(3)
+            assert False
+        except pl.refine.NoDataRefinedError:
+            assert True
         assert str(w[0].message) == m
 
     return True

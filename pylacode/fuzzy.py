@@ -1,18 +1,19 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
-import sys
-import pylacode as pl
-assert sys.version_info >= (2, 7)
-
-import pylacode.source
 import binascii
-import warnings
-import operator
 import hashlib
+import operator
 import random
+import sys
 import time
+import warnings
+
+import pylacode as pl
+import pylacode.source
+
+assert sys.version_info >= (2, 7)
 
 logic_type = pl.logic.tbsl
 
@@ -20,16 +21,21 @@ _local_occuring_uid = 0
 
 uuid_magic = '49e'
 uuid_session = None
+
+
 def reset_session():
     global uuid_session
     uuid_session = random.uniform(0, 1).hex()[4:10]
+
+
 reset_session()
+
 
 def create_uuid(source):
     global _local_occuring_uid
 
     src = None
-    if sys.version_info < (3,):
+    if sys.version_info < (3, ):
         src = str(source).decode('utf8')
     else:
         src = bytes(str(source), 'utf8')
@@ -43,7 +49,7 @@ def create_uuid(source):
     s += '-' + random.uniform(0, 1).hex()[4:10]
 
     src = None
-    if sys.version_info < (3,):
+    if sys.version_info < (3, ):
         src = s.decode('utf8')
     else:
         src = bytes(s, 'utf8')
@@ -52,22 +58,23 @@ def create_uuid(source):
     _local_occuring_uid += 1
     return s
 
+
 class evidence:
     def __init__(self,
-        value=None,
-        size=None,
-        source=None,
-        merge_operator=operator.add,
-        **mdata):
+                 value=None,
+                 size=None,
+                 source=None,
+                 merge_operator=operator.add,
+                 **mdata):
 
         if source is None:
             source = pl.source.default
         assert pl.source.issource(source)
 
         if value is None:
-            assert size is not None # if value is None, then size must be given
-            self.value = logic_type(size=size)
+            assert size is not None  # if value is None then size must be given
             self.size = size
+            self.value = logic_type(size=self.size)
         else:
             self.value = logic_type(value)
             if size is not None:
@@ -79,7 +86,7 @@ class evidence:
         self.source = source
         self.mdata = dict(**mdata)
         self.uuid = create_uuid(source)
-        self.uid = _local_occuring_uid
+        self.uid = int(_local_occuring_uid)
 
     def __lshift__(self, other):
         assert isinstance(other, evidence)
@@ -91,9 +98,7 @@ class evidence:
             source = self.source
         else:
             source = pl.source.merge_source(
-                op=self.merge_operator,
-                left=self.source,
-                right=other.source)
+                op=self.merge_operator, left=self.source, right=other.source)
 
         return evidence(
             value=value,

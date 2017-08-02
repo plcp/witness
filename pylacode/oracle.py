@@ -1,30 +1,37 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
 import sys
+
 import pylacode as pl
+import pylacode.fuzzy
+import pylacode.table
+
 assert sys.version_info >= (2, 7)
 
-import pylacode.table
-import pylacode.fuzzy
 
 class oracle_backend(object):
     def __init__(self, parent):
         self.parent = parent
+
     def reset(self):
         raise NotImplementedError
+
     def learn(self, *evidences, history=None):
         raise NotImplementedError
+
     def query(self, *evidences):
         raise NotImplementedError
+
     def submit(self, *evidences):
         raise NotImplementedError
 
+
 class oracle(object):
     def __init__(self, backend_class, *kargs, **kwargs):
-        self.backend = backend(parent=self, *kargs, **kwargs)
-        self.backend_class = backend
+        self.backend = backend_class(parent=self, *kargs, **kwargs)
+        self.backend_class = backend_class
         self.reset(backend=True)
 
     def add_table(self, *tables):
@@ -52,7 +59,7 @@ class oracle(object):
             _output += table.output
         return _output
 
-   def digest_label(self, *labels, inverse=False):
+    def digest_label(self, *labels, inverse=False):
         _output = []
         for table in self.tables:
             table.digest(*labels, inverse=inverse)

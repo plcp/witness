@@ -1,27 +1,31 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
 import sys
+import warnings
+
+import numpy as np
 import pylacode as pl
+import pylacode.error
+
 assert sys.version_info >= (2, 7)
 
-import pylacode.error
-import numpy as np
-
 # Non-informative prior weight
-ebsl_prior = 2 # (ensure uniform Beta-distribution when « apriori == 0.5 »)
+ebsl_prior = 2  # (ensure uniform Beta-distribution when « apriori == 0.5 »)
 
 # Minimal uncertainty considered during discounting
-min_uncertainty = 1.0 / 33. # defaulted at 33:1 to fix « inert_weight(2) == 64 »
+min_uncertainty = 1.0 / \
+    33.  # defaulted at 33:1 to fix « inert_weight(2) == 64 »
 
 # Belief required for full-trust during discounting
-trust_threshold = 1.0 / 2.0 # defaulted at 2:1 for positive against negative
+trust_threshold = 1.0 / 2.0  # defaulted at 2:1 for positive against negative
 
 # Operator __eq__ constants
-eq_rtol = 1e-5 # relative tolerance
-eq_atol = 1e-8 # absolute tolerance
-eq_nan = False # is NaN equal to NaN ?
+eq_rtol = 1e-5  # relative tolerance
+eq_atol = 1e-8  # absolute tolerance
+eq_nan = False  # is NaN equal to NaN ?
+
 
 def islogic(item):
     try:
@@ -29,36 +33,23 @@ def islogic(item):
     except AttributeError:
         return False
 
+
 class _base(object):
     '''Base class for logic types
 
     '''
-    aliases = (
-        ('__eq__', 'equals'),
-        ('__iadd__', 'merge_with'),
-    )
-    properties = (
-        ('probability', 'p'),
-        ('weight', 'w'),
-        ('trust', 't'),
-        ('common_belief', 'c'),
-    )
-    bycopy_ops = (
-        ('invert', '__invert__'),
-        ('__iadd__', '__add__'),
-        ('__imul__', '__mul__'),
-        ('__imul__', '__rmul__'),
-        ('__idiv__', '__div__'),
-        ('__idiv__', '__truediv__'),
-        ('__iand__', '__and__'),
-        ('__ior__', '__or__'),
-    )
+    aliases = (('__eq__', 'equals'), ('__iadd__', 'merge_with'), )
+    properties = (('probability', 'p'), ('weight', 'w'), ('trust', 't'),
+                  ('common_belief', 'c'), )
+    bycopy_ops = (('invert', '__invert__'), ('__iadd__', '__add__'),
+                  ('__imul__', '__mul__'), ('__imul__', '__rmul__'),
+                  ('__idiv__', '__div__'), ('__idiv__', '__truediv__'),
+                  ('__iand__', '__and__'), ('__ior__', '__or__'), )
 
     def __init__(self, other=None, size=None):
         if isinstance(other, tuple):
             if not len(other) == len(self.value_names):
-                raise AssertionError(
-                    'Expected a tuple of lenght {}'.format(
+                raise AssertionError('Expected a tuple of lenght {}'.format(
                     len(self.value_names)))
 
             s = None
@@ -70,12 +61,13 @@ class _base(object):
             new_values = []
             for v in other:
                 if isinstance(v, (float, int)):
-                    v = np.array([float(v),])
+                    v = np.array([
+                        float(v),
+                    ])
 
                 if not isinstance(v, np.ndarray):
                     raise AssertionError(
-                        'Expecting numpy.ndarray: {} in {}'.format(
-                        v, other))
+                        'Expecting numpy.ndarray: {} in {}'.format(v, other))
 
                 if not s == len(v):
                     raise AssertionError(
@@ -173,8 +165,9 @@ class _base(object):
             other = other.cast_to(self.__class__)
 
         return all([
-                np.allclose(a, b, rtol, atol, equal_nan)
-                for a, b in zip(self.value, other.value)])
+            np.allclose(a, b, rtol, atol, equal_nan)
+            for a, b in zip(self.value, other.value)
+        ])
 
     def invert(self):
         raise NotImplementedError
@@ -221,8 +214,8 @@ class _base(object):
         elif isinstance(other, np.ndarray):
             _trust = other
         else:
-            raise AssertionError('Expecting scalar, numpy.ndarray'
-                + ' or *bsl')
+            raise AssertionError('Expecting scalar, numpy.ndarray' +
+                                 ' or *bsl')
 
         return self.__imul__(pl.error.try_inverse(_trust))
 
@@ -235,6 +228,7 @@ class _base(object):
 
     def __ior__(self, other):
         raise NotImplementedError
+
 
 class obsl(_base):
     '''Opinion-Based Subjective Logic (as found in the litterature)
@@ -322,8 +316,8 @@ class obsl(_base):
         return n
 
     def invert(self):
-        self.value = (self.disbelief, self.belief,
-            self.uncertainty, 1.0 - self.apriori)
+        self.value = (self.disbelief, self.belief, self.uncertainty,
+                      1.0 - self.apriori)
         return self
 
     @property
@@ -346,15 +340,14 @@ class obsl(_base):
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
 
-        norm = pl.error.try_inverse(0.
-            + self.uncertainty
-            + other.uncertainty
-            - self.uncertainty * other.uncertainty)
+        norm = pl.error.try_inverse(0. + self.uncertainty + other.uncertainty -
+                                    self.uncertainty * other.uncertainty)
 
-        _belief = (self.belief * other.uncertainty
-                + other.belief * self.uncertainty) * norm
-        _disbelief = (self.disbelief * other.uncertainty
-                + other.disbelief * self.uncertainty) * norm
+        _belief = (
+            self.belief * other.uncertainty + other.belief * self.uncertainty
+        ) * norm
+        _disbelief = (self.disbelief * other.uncertainty +
+                      other.disbelief * self.uncertainty) * norm
         _uncertainty = 1 - _belief - _disbelief
 
         s_weight = self.w(prior) - prior
@@ -450,6 +443,7 @@ class obsl(_base):
         self.value = (_belief, _disbelief, _uncertainty, _apriori)
         return self
 
+
 class tbsl(_base):
     '''Three-Value-Based Subjective Logic
 
@@ -543,8 +537,9 @@ class tbsl(_base):
 
     @property
     def probability(self):
-        return (1.0 + self.truth + self.apriori
-            - self.apriori * self.confidence) / 2.0
+        return (
+            1.0 + self.truth + self.apriori - self.apriori * self.confidence
+        ) / 2.0
 
     @property
     def weight(self, prior=None):
@@ -657,6 +652,7 @@ class tbsl(_base):
         self.value = (_truth, _confidence, _apriori)
         return self
 
+
 class ebsl(_base):
     '''Evidence-Based Subjective Logic
 
@@ -746,8 +742,7 @@ class ebsl(_base):
         if prior is None:
             prior = ebsl_prior
 
-        return (self.positive + self.apriori * prior
-            ) / self.w(prior)
+        return (self.positive + self.apriori * prior) / self.w(prior)
 
     def alpha(self, prior=None):
         if prior is None:
@@ -850,6 +845,7 @@ class ebsl(_base):
         self.value = n.cast_to(ebsl, prior=prior).value
         return self
 
+
 def describe_likelihood(scalar):
     if isinstance(scalar, types):
         assert len(scalar) == 1
@@ -884,6 +880,7 @@ def describe_likelihood(scalar):
     else:
         return 'Absolutely Not'
 
+
 def describe_uncertainty(scalar):
     if isinstance(scalar, types):
         assert len(scalar) == 1
@@ -914,6 +911,7 @@ def describe_uncertainty(scalar):
     else:
         return 'Completely Uncertain'
 
+
 def describe(_this):
     _begin = describe_likelihood(_this)
     _end = describe_uncertainty(_this)
@@ -921,25 +919,29 @@ def describe(_this):
         return _begin + ", but it's " + _end
     return _begin + ", and it's " + _end
 
+
 def uniform(size, count=1, vtype=obsl):
     if count == 1:
         return [vtype.uniform(size)]
     else:
         return [vtype.uniform(size) for _ in range(0, count)]
 
+
 types = (obsl, tbsl, ebsl)
 for vtype in types:
     for dtype in types:
+
         def _fcast(self, target=dtype):
             return self.cast_to(target)
 
-        if sys.version_info < (3,):
+        if sys.version_info < (3, ):
             _fcast.__name__ = str('_cast_to_{}'.format(dtype.__name__))
         else:
             _fcast.__name__ = '_cast_to_{}'.format(dtype.__name__)
         setattr(vtype, dtype.__name__, property(_fcast))
 
     for i, name in enumerate(vtype.value_names):
+
         def _fget(self, idx=i):
             return self.value[idx]
 
@@ -947,12 +949,10 @@ for vtype in types:
             assert isinstance(array, np.ndarray)
             assert len(self) == len(array)
 
-            self.value = (tuple()
-                + self.value[:idx]
-                + (array,)
-                + self.value[idx + 1:])
+            self.value = (tuple() + self.value[:idx] +
+                          (array, ) + self.value[idx + 1:])
 
-        if sys.version_info < (3,):
+        if sys.version_info < (3, ):
             _fget.__name__ = str('_fget_{}'.format(name))
             _fset.__name__ = str('_fset_{}'.format(name))
         else:
@@ -973,14 +973,16 @@ for name, alias in _base.properties:
 for name, alias in _base.bycopy_ops:
     for vtype in types:
         op = getattr(vtype, name)
+
         def _bycopy_factory(_name=name, _op=op):
             def _bycopy(self, *kargs):
                 return _op(self.copy(), *kargs)
 
-            if sys.version_info < (3,):
+            if sys.version_info < (3, ):
                 _bycopy.__name__ = str('_bycopy_{}'.format(_name))
             else:
                 _bycopy.__name__ = '_bycopy_{}'.format(_name)
 
             return _bycopy
+
         setattr(vtype, alias, _bycopy_factory())

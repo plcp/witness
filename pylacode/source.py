@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
+import collections
 import sys
+
 import pylacode as pl
+import pylacode.tools
+
 assert sys.version_info >= (2, 7)
 
-import pylacode.tools
-import collections
 
 def issource(item):
     try:
         return issubclass(item.__class__, _base_source)
     except AttributeError:
         return False
+
 
 class _base_source(object):
     name = '_base'
@@ -30,10 +33,13 @@ class _base_source(object):
             self._genericity = None
 
         if self.prop is not None:
+
             def _fget(self):
                 return self._genericity
+
             def _fset(self, value):
                 self._genericity = value
+
             setattr(self.__class__, self.prop, property(_fget, _fset))
 
         for p in self._attributes:
@@ -41,6 +47,7 @@ class _base_source(object):
 
             def _fget_p(self, _key=p):
                 return self._attributes[_key]
+
             def _fset_p(self, value, _key=p):
                 self._attributes[_key] = value
 
@@ -75,20 +82,27 @@ class _base_source(object):
     def __eq__(self, other):
         return str(self) == str(other)
 
+
 class default_source(_base_source):
     name = 'default'
     prop = None
+
+
 default = default_source()
+
 
 class named_source(_base_source):
     prop = None
+
     def __init__(self, name, **attributes):
         _base_source.__init__(self, **attributes)
         self.name = name
 
+
 class merge_source(_base_source):
     name = 'merge'
     prop = 'op'
+
 
 class label_source(_base_source):
     name = 'label'
