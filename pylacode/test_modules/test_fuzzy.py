@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
-import sys
-import pylacode as pl
-assert sys.version_info >= (2, 7)
-
-import pylacode.source
-import pylacode.logic
-import pylacode.fuzzy
-import operator
 import binascii
 import hashlib
+import operator
 import random
+import sys
 import time
+
+import pylacode as pl
+import pylacode.fuzzy
+import pylacode.logic
+import pylacode.source
+
+assert sys.version_info >= (2, 7)
+
 
 # run tests
 def run():
@@ -46,7 +48,7 @@ def run():
 
     # check if the uuid's fifth field is equal to hashed source
     h = fake_source.name + '()'
-    if sys.version_info < (3,):
+    if sys.version_info < (3, ):
         h = hashlib.sha224(h).hexdigest()[-6:]
     else:
         h = hashlib.sha224(bytes(h, 'utf8')).hexdigest()[-6:]
@@ -61,7 +63,7 @@ def run():
 
     # check if the uuid's ultimate field is finished by a correct crc32
     crc = uuid_tcheck[:-8]
-    if sys.version_info < (3,):
+    if sys.version_info < (3, ):
         crc = (binascii.crc32(crc) & 0xffffffff)
     else:
         crc = (binascii.crc32(bytes(crc, 'utf8')) & 0xffffffff)
@@ -91,13 +93,15 @@ def run():
 
     # test source mixing while merging
     x.source = fake_source
-    assert str((x << y).source
-        ) == 'merge<add>(left={}(),right=default())'.format(fake_source.name)
+    assert str(
+        (x << y).source) == 'merge<add>(left={}(),right=default())'.format(
+            fake_source.name)
 
     # test source mixing with another operator
     y.merge_operator = operator.mul
-    assert str((y << x).source
-        ) == 'merge<mul>(left=default(),right={}())'.format(fake_source.name)
+    assert str(
+        (y << x).source) == 'merge<mul>(left=default(),right={}())'.format(
+            fake_source.name)
 
     # test results obtained while merging
     assert (x << y).value == (x.value + y.value)

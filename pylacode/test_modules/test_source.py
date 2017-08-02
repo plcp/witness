@@ -1,13 +1,15 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
+import random
 import sys
+
 import pylacode as pl
+import pylacode.source
+
 assert sys.version_info >= (2, 7)
 
-import pylacode.source
-import random
 
 # run tests
 def run():
@@ -19,7 +21,8 @@ def run():
 
     # construct named sources
     x = pl.source.named_source(name='what', other_metadata='some')
-    y = pl.source.named_source(name='whom', other_metadata='some', more='again')
+    y = pl.source.named_source(
+        name='whom', other_metadata='some', more='again')
     assert y.more == 'again'
     assert x.name == 'what' and y.name == 'whom'
     assert x.other_metadata == 'some' and y.other_metadata
@@ -55,18 +58,16 @@ def run():
     e = pl.source.merge_source(op=x, again=(a, b), nope=bdict)
 
     # check repr & dict-ordering-sensitive determinism
-    strab = (
-        'merge<concat>(left=what(other_metadata=some),'
-        + 'right=whom(more=again,other_metadata=some))')
+    strab = ('merge<concat>(left=what(other_metadata=some),' +
+             'right=whom(more=again,other_metadata=some))')
     strec = (
-        'merge<what(other_metadata=some)>(again=(merge'
-        + '<concat>(left=what(other_metadata=some),rig'
-        + 'ht=whom(more=again,other_metadata=some)),me'
-        + 'rge<concat>(left=what(other_metadata=some),'
-        + 'right=whom(more=again,other_metadata=some))'
-        + '),nope={left:what(other_metadata=some),name'
-        + ':merge,op:concat,right:whom(more=again,othe'
-        + 'r_metadata=some)})')
+        'merge<what(other_metadata=some)>(again=(merge' +
+        '<concat>(left=what(other_metadata=some),rig' +
+        'ht=whom(more=again,other_metadata=some)),me' +
+        'rge<concat>(left=what(other_metadata=some),' +
+        'right=whom(more=again,other_metadata=some))' +
+        '),nope={left:what(other_metadata=some),name' +
+        ':merge,op:concat,right:whom(more=again,othe' + 'r_metadata=some)})')
     assert str(a) == repr(b) == strab
     assert repr(e) == str(c) == strec
 

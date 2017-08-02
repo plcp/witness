@@ -1,32 +1,37 @@
 # -*- coding: utf-8 -*-
-from __future__ import absolute_import, print_function
-from __future__ import unicode_literals, division, with_statement
+from __future__ import (absolute_import, division, print_function,
+                        unicode_literals, with_statement)
 
-import sys
-import pylacode as pl
-assert sys.version_info >= (2, 7)
-
-import pylacode.logic
-import pylacode.error
-import numpy as np
-import traceback
-import warnings
 import inspect
 import random
 import sys
+import traceback
+import warnings
+
+import numpy as np
+import pylacode as pl
+import pylacode.error
+import pylacode.logic
+
+assert sys.version_info >= (2, 7)
 
 test_types = pl.logic.types
-test_ops = ['__invert__', 'probability', 'alpha', 'beta',
-            'weight', '__iadd__', 'trust', '__imul__',
-            '__idiv__', '__iand__', '__ior__', 'c', 'true',
-            'false', 'uncertain']
+test_ops = [
+    '__invert__', 'probability', 'alpha', 'beta', 'weight', '__iadd__',
+    'trust', '__imul__', '__idiv__', '__iand__', '__ior__', 'c', 'true',
+    'false', 'uncertain'
+]
+
 
 # test near-equality with a relative/absolute tolerance
 def _similar(a, b):
-    return np.allclose(a, b,
+    return np.allclose(
+        a,
+        b,
         rtol=pl.logic.eq_rtol,
         atol=pl.logic.eq_atol,
         equal_nan=pl.logic.eq_nan)
+
 
 # run tests
 def run():
@@ -133,7 +138,7 @@ def run():
                 _warns = []
                 for i in range(0, len(w)):
                     _wi = None
-                    if sys.version_info < (3,):
+                    if sys.version_info < (3, ):
                         _wi = w[i].message
                     else:
                         _wi = str(w[i])
@@ -143,8 +148,9 @@ def run():
 
                 if len(_warns) < 1:
                     traceback.print_exception(*e.exc_info)
-                    raise AssertionError('No warning raised when '
-                        + 'assertion failed: {}, {} '.format(str(w), e))
+                    raise AssertionError('No warning raised when ' +
+                                         'assertion failed: {}, {} '.format(
+                                             str(w), e))
         if _success:
             break
 
@@ -152,14 +158,15 @@ def run():
     if not _success:
         for e in failures:
             traceback.print_exception(*e.exc_info)
-        raise AssertionError('Numerically unstable operations failed '
-            + '{} times in a row'.format(j + 1))
+        raise AssertionError('Numerically unstable operations failed ' +
+                             '{} times in a row'.format(j + 1))
 
     # test operators equivalence between representations
     for op in test_ops:
         assert _check_op(op)
 
     return True
+
 
 def _unstable_tests():
     # test basic discounting
@@ -197,16 +204,17 @@ def _unstable_tests():
         assert (((x * 2) / y) / 2) * y == x
         assert (x * y * z * z) / (y * z) == x * z
         assert _similar(x.trust * 2, (x * 2).trust)
-        assert _similar(x.trust ** 3, (x * x * x).trust)
+        assert _similar(x.trust**3, (x * x * x).trust)
         assert _similar(x.trust * y.trust, (x * y).trust)
-        assert _similar((x.trust + y.trust) * z.trust,
-            (x * z + y * z).trust)
+        assert _similar((x.trust + y.trust) * z.trust, (x * z + y * z).trust)
+
 
 def _get_op_from_name(vtype, op_name):
     op = getattr(vtype, op_name)
     if isinstance(op, property):
         return op.fget
     return op
+
 
 def _evaluate_op_with_vtype(op_name, vtype, values):
     op = _get_op_from_name(vtype, op_name)
@@ -217,6 +225,7 @@ def _evaluate_op_with_vtype(op_name, vtype, values):
         result = vtype(result)
     return result, (op_name, vtype, values)
 
+
 def _evaluate_op_forall(op_name, values):
     results = []
     reports = []
@@ -225,6 +234,7 @@ def _evaluate_op_forall(op_name, values):
         results.append(result)
         reports.append(report)
     return results, reports
+
 
 def _check_op_forall(op_name, values):
     results = []
@@ -262,8 +272,10 @@ def _check_op_forall(op_name, values):
                         exp = exp.value
 
                         differ = [abs(o - e) for o, e in zip(obt, exp)]
-                        rerror = [pl.logic.eq_atol + pl.logic.eq_rtol
-                                    * abs(e) for e in exp]
+                        rerror = [
+                            pl.logic.eq_atol + pl.logic.eq_rtol * abs(e)
+                            for e in exp
+                        ]
                     else:
                         differ = abs(obt - exp)
                         rerror = pl.logic.eq_atol + pl.logic.eq_rtol * abs(exp)
@@ -272,19 +284,18 @@ def _check_op_forall(op_name, values):
                     differ = 'Unavailable: {}'.format(e)
                     rerror = 'Unavailable: <see above exception>'
 
-                raise AssertionError(error +
-                    '\n\n >> Here is the failing test case:' +
+                raise AssertionError(
+                    error + '\n\n >> Here is the failing test case:' +
                     '\n\t{}'.format(str(obtained)) +
                     '\n\n >> Here is the expected result:' +
                     '\n\t{}'.format(str(expected)) +
                     '\n\n >> Here is the error vs tolerance:' +
-                    '\n\t{}'.format(differ) +
-                    '\n\t{}'.format(rerror) +
-                    '\n')
+                    '\n\t{}'.format(differ) + '\n\t{}'.format(rerror) + '\n')
     return True
 
+
 def _get_parameter_count(op):
-    if sys.version_info < (3,):
+    if sys.version_info < (3, ):
         spec = inspect.getargspec(op)
         _len = len(spec.args)
         if spec.defaults is not None:
@@ -295,6 +306,7 @@ def _get_parameter_count(op):
     args = [p for p in spec if spec[p].default is inspect._empty]
     args = [p for p in args if spec[p].kind not in {2, 4}]
     return len(args)
+
 
 def _check_op(op_name):
     vtypes = list(test_types)
