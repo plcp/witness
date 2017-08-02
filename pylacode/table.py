@@ -14,9 +14,9 @@ class translation(object):
     def __init__(self, backends):
         self.table = self
         self.backends = backends
-        self.reset()
+        self.reset(oracle=True)
 
-    def reset(self):
+    def reset(self, oracle=False):
         self.mdata = {}
         self.output = []
         self.inverse = False
@@ -26,6 +26,9 @@ class translation(object):
         self.remaining_data = []
         self.pending_output = []
         self.pending_backends = []
+
+        if oracle:
+            self.oracle = None
 
     @property
     def finished(self):

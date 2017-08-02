@@ -27,11 +27,17 @@ class oracle(object):
         self.backend_class = backend
         self.reset(backend=True)
 
-    def add_table(self, table):
-        self.tables.append(table)
+    def add_table(self, *tables):
+        for table in tables:
+            table.reset(oracle=True)
+            table.oracle = self
+            self.tables.append(table)
 
-    def add_label(self, label):
-        self.lables.append(label)
+    def add_label(self, *labels):
+        for label in labels:
+            label.reset(oracle=True)
+            label.oracle = self
+            self.lables.append(label)
 
     def reset(self, backend=False):
         if backend:
