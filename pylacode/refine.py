@@ -28,7 +28,7 @@ class data(object):
         if self._inverse is None:
             warnings.warn('No inverse function provided while refining data '
                 + 'with {} backend (id: {}).'.format(self.name, self))
-            return
+            raise NoDataRefinedError()
         self._inverse(state=state, parent=self)
 
     def __repr__(self):
@@ -94,6 +94,7 @@ class label(data):
         return _evidence
 
     def transform(self, state):
+        _refined = False
         for idx, payload in state.remaining_data:
             _label = self.get_label(payload)
             if _label is None and payload[0].startswith('!'):
@@ -104,6 +105,10 @@ class label(data):
             if _label is not None:
                 state.ouput.append(_label)
                 del state.remaining_data[idx]
+                _refined = True
+
+        if not _refined:
+            raise NoDataRefinedError()
 
     def inverse(self, state):
-       return # todo
+       raise NoDataRefinedError() # todo
