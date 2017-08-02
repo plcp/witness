@@ -89,3 +89,7 @@ class named_source(_base_source):
 class merge_source(_base_source):
     name = 'merge'
     prop = 'op'
+
+class label_source(_base_source):
+    name = 'label'
+    prop = 'tag'
