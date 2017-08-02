@@ -79,6 +79,9 @@ class label(data):
             raise AssertionError('Unable to use {} to construct a label'.format(
                 label))
 
+        for _remaining in labels:
+            self.add(_remaining)
+
     def get_label(self, label):
         if label not in self.labels:
             return None
