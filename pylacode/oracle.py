@@ -9,16 +9,16 @@ assert sys.version_info >= (2, 7)
 import pylacode.table
 import pylacode.fuzzy
 
-class backend(object):
+class oracle_backend(object):
     def __init__(self, parent):
         self.parent = parent
-    def reset(self, *discarded):
+    def reset(self):
         raise NotImplementedError
-    def learn(self, *discarded):
+    def learn(self, *evidences, history=None):
         raise NotImplementedError
-    def query(self, *discarded):
+    def query(self, *evidences):
         raise NotImplementedError
-    def submit(self, *discarded):
+    def submit(self, *evidences):
         raise NotImplementedError
 
 class oracle(object):
