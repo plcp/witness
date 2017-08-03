@@ -2,9 +2,11 @@
 from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
+import operator
 import sys
 import warnings
 
+import numpy as np
 import pylacode as pl
 import pylacode.fuzzy
 import pylacode.source
@@ -37,10 +39,58 @@ class data(object):
         return self.name + object.__repr__(self)
 
 
+def _from_bool(value, size):
+    if size is None:
+        size = 1
+    if value:
+        return pl.logic.tbsl(pl.logic.tbsl.true(size))
+    else:
+        return pl.logic.tbsl(pl.logic.tbsl.false(size))
+
+
+def _from_boollist(value, size):
+    if size is None:
+        size = len(value)
+    assert len(value) == size
+    _value = pl.logic.tbsl(size=size)
+    for idx, _b in enumerate(value):
+        _value[idx] = _from_bool(value, 1)
+    return _value
+
+
+def label_castvalue(value, size):
+    if value is None:
+        if size is None:
+            size = 1
+        return pl.logic.tbsl(pl.logic.tbsl.true(size))
+    elif isinstance(value, (bool, np.bool, np.bool_)):
+        return _from_bool(value, size)
+    elif (isinstance(value, list) and isinstance(value[0],
+                                                 (bool, np.bool, np.bool_))):
+        return _from_boollist(value, size)
+    elif (isinstance(value, tuple) and len(value) == 3 and
+          isinstance(value[0], np.ndarray)):
+        if size is None:
+            size = len(value[0])
+        assert len(value[0]) == size
+        return pl.logic.tbsl(value)
+    elif pl.logic.islogic(value):
+        return value.tbsl
+    else:
+        raise AssertionError('Unable to build a label from {}'.format(value) +
+                             ' (size={})'.format(size))
+
+
 class label(data):
+    class item(object):
+        def __init__(self, **attributes):
+            for a in attributes:
+                setattr(self, a, attributes[a])
+
     def __init__(self, name, size, source=None, **mdata):
         self.size = size
         self.name = name
+        self.last = 0
         self.mdata = dict(**mdata)
         self.labels = {}
 
@@ -50,63 +100,66 @@ class label(data):
             assert pl.source.issource(source)
             self.source = source
 
-    def add(self, *labels):
-        label = None
-        if len(labels) == 1:
-            label = labels[0]
-        else:
-            for label in labels:
-                self.add(label)
-            return
+    def add(self,
+            *labels,
+            label=None,
+            value=None,
+            transform_slice=None,
+            inverse_slice=None,
+            inverse_op=operator.add):
 
-        if isinstance(label, tuple):
-            if len(label) >= 2:
-                assert isinstance(label[0], type(''))
-                assert pl.logic.islogic(label[1])
+        if label is None:
+            if len(labels) == 0:
+                raise AssertionError('No label provided: {}... {}'.format(
+                    dict(
+                        label=label,
+                        value=value,
+                        transform_slice=transform_slice,
+                        inverse_slice=inverse_slice,
+                        inverse_op=inverse_op), labels))
+            self.add(*labels[1:], **labels[0])
 
-            if len(label) == 2:
-                assert len(label[1]) == self.size
-                self.labels[label[0]] = (label[1].tbsl, slice(None))
-            elif len(label) == 3:
-                assert isinstance(label[3], slice)
-                assert len(label[1]) == len(pl.logic.tbsl(self.size)[label[3]])
-                self.labels[label[0]] = (label[1].tbsl, label[3])
-            else:
-                raise AssertionError('Ill-formed by-tuple label')
-        elif isinstance(label, type('')):
-            assert (len(self.labels) < self.size)
+        size = None
+        if transform_slice is not None:
+            assert isinstance(transform_slice, slice)
+            size = len(pl.logic.tbsl(size=self.size)[transform_slice])
 
-            _value = None
-            if label.startswith('!'):
-                _value = pl.logic.tbsl(pl.logic.tbsl.false())
-            elif label.startswith('?'):
-                _value = pl.logic.tbsl(pl.logic.tbsl.uncertain())
-            else:
-                _value = pl.logic.tbsl(pl.logic.tbsl.true())
-            _slice = slice(len(self.labels))
+        value = label_castvalue(value, size)
+        size = len(value)
 
-            self.labels[label] = (_value, _slice)
-        else:
-            raise AssertionError(
-                'Unable to use {} to construct a label'.format(label))
+        if transform_slice is None:
+            transform_slice = slice(self.last, self.last + len(value))
+
+        if inverse_slice is None:
+            inverse_slice = transform_slice
+
+        self.labels[label] = label.item(label, value, transform_slice,
+                                        inverse_slice, inverse_op)
+
+        if len(labels) > 0:
+            self.add(*label[1:], **label[0])
 
     def get_label(self, label):
         if label not in self.labels:
             return None
+        return self.labels[label]
+
+    def transform_label(self, label):
+        item = self.get_label(label)
+        if item is None:
+            return None
 
         _evidence = pl.fuzzy.evidence(
             size=self.size, source=self.source, origin='label', label=label)
-        _value, _slice = self.labels[label]
-
-        _evidence.value[_slice] = _value
+        _evidence.value[item.transform_slice] = item.value
         return _evidence
 
     def transform(self, state):
         _refined = False
         for idx, payload in state.remaining_data:
-            _label = self.get_label(payload)
+            _label = self.transform_label(payload)
             if _label is None and payload[0].startswith('!'):
-                _label = self.get_label(payload[1:])
+                _label = self.transform_label(payload[1:])
                 if _label is not None:
                     _label.value.invert()
 
