@@ -58,4 +58,14 @@ def run():
             assert True
         assert str(w[0].message) == m
 
+    # construct a label collection
+    lc = pl.refine.label('again', 13)
+    assert 'again' + object.__repr__(lc) == repr(lc)
+    assert repr(lc.source) == 'label<again>()'
+    assert lc.size == 13
+
+    # add various labels to the collection
+    lc.add(label='false', value=False)
+    lc.add([dict(label='true', value=True)])
+
     return True

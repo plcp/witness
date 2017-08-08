@@ -101,7 +101,7 @@ class label(data):
             self.source = source
 
     def add(self,
-            *labels,
+            labels=[],
             label=None,
             value=None,
             transform_slice=None,
@@ -128,16 +128,23 @@ class label(data):
         size = len(value)
 
         if transform_slice is None:
-            transform_slice = slice(self.last, self.last + len(value))
+            transform_slice = slice(self.last, self.last + size)
+        else:
+            assert size == len(pl.logic.tbsl(size=self.size)[transform_slice])
 
         if inverse_slice is None:
             inverse_slice = transform_slice
 
-        self.labels[label] = label.item(label, value, transform_slice,
-                                        inverse_slice, inverse_op)
+        self.last += size
+        self.labels[label] = self.item(
+            label=label,
+            value=value,
+            transform_slice=transform_slice,
+            inverse_slice=inverse_slice,
+            inverse_op=inverse_op)
 
         if len(labels) > 0:
-            self.add(*label[1:], **label[0])
+            self.add(labels=labels[1:], **labels[0])
 
     def get_label(self, label):
         if label not in self.labels:
