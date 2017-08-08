@@ -4,7 +4,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import copy
 import sys
-import weakref
 
 import pylacode as pl
 import pylacode.refine
@@ -69,17 +68,16 @@ class translation(object):
         if self.finished:
             return False
 
+        previous_state = None
         if retain_history:
             previous_state = copy.deepcopy(self)
-        else:
-            previous_state = None
 
         backend = self.pending_backends.pop()
         self.mdata = dict(self.mdata, **mdata)
         self.active_backend = backend
 
         if self.execute():
-            self.previous_state = weakref.ref(previous_state)
+            self.previous_state = previous_state
         return True
 
     def digest(self,
