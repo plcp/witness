@@ -8,9 +8,9 @@ import operator
 import random
 import sys
 import time
-import warnings
 
 import pylacode as pl
+import pylacode.error
 import pylacode.source
 
 assert sys.version_info >= (2, 7)
@@ -78,7 +78,7 @@ class evidence:
         else:
             self.value = logic_type(value)
             if size is not None:
-                warnings.warn('Size given but ignored')
+                pl.error.warn('Size given but ignored')
             self.size = len(value)
 
         global _local_occuring_uid

@@ -3,7 +3,6 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
 import sys
-import warnings
 
 import numpy as np
 import pylacode as pl
@@ -76,14 +75,14 @@ class _base(object):
                 new_values.append(v)
 
             if size is not None:
-                warnings.warn('Size given but ignored')
+                pl.error.warn('Size given but ignored')
 
             self.size = s
             self.value = tuple(new_values)
         elif other is not None:
             assert other.__class__ in types
             if size is not None:
-                warnings.warn('Size given but ignored')
+                pl.error.warn('Size given but ignored')
 
             self.size = len(other)
             self.value = other.cast_to(self.__class__).value

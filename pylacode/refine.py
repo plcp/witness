@@ -4,10 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import operator
 import sys
-import warnings
 
 import numpy as np
 import pylacode as pl
+import pylacode.error
 import pylacode.fuzzy
 import pylacode.source
 import pylacode.tools
@@ -31,7 +31,7 @@ class data(object):
 
     def inverse(self, state):
         if self._inverse is None:
-            warnings.warn('No inverse function provided while refining data ' +
+            pl.error.warn('No inverse function provided while refining data ' +
                           'with {} backend (id: {}).'.format(self.name, self))
             raise NoDataRefinedError()
         self._inverse(state=state, parent=self)
