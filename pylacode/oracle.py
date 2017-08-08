@@ -12,7 +12,7 @@ import pylacode.tools
 assert sys.version_info >= (2, 7)
 
 
-class oracle_backend(object):
+class backend(object):
     def __init__(self, parent):
         self.parent = parent
 
