@@ -8,6 +8,7 @@ import weakref
 
 import pylacode as pl
 import pylacode.refine
+import pylacode.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -36,7 +37,8 @@ class translation(object):
     def finished(self):
         return len(self.pending_backends) < 1
 
-    def prepare(self, *payloads, inverse=False, reset=True, **mdata):
+    def prepare(self, payloads, inverse=False, reset=True, **mdata):
+        payloads = pl.tools.listify(payloads)
         if reset:
             self.reset()
 
@@ -81,12 +83,13 @@ class translation(object):
         return True
 
     def digest(self,
-               *payloads,
+               payloads,
                inverse=False,
                retain_history=False,
                reset=True,
                **mdata):
-        self.prepare(*payloads, inverse=inverse, reset=reset, **mdata)
+        payloads = pl.tools.listify(payloads)
+        self.prepare(payloads, inverse=inverse, reset=reset, **mdata)
         while self.iterate(retain_history=retain_history):
             pass
         return self.finish()
