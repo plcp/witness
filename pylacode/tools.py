@@ -3,12 +3,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
 import sys
-import collections
 
 assert sys.version_info >= (2, 7)
 
 def listify(target):
-    if isinstance(target, collections.Iterable):
+    if isinstance(target, list):
         return target
     return [target]
 

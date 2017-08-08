@@ -10,6 +10,7 @@ import numpy as np
 import pylacode as pl
 import pylacode.fuzzy
 import pylacode.source
+import pylacode.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -107,17 +108,18 @@ class label(data):
             transform_slice=None,
             inverse_slice=None,
             inverse_op=operator.add):
-
+        labels = pl.tools.listify(labels)
         if label is None:
             if len(labels) == 0:
                 raise AssertionError('No label provided: {}... {}'.format(
                     dict(
                         label=label,
                         value=value,
+                        size=size,
                         transform_slice=transform_slice,
                         inverse_slice=inverse_slice,
                         inverse_op=inverse_op), labels))
-            self.add(*labels[1:], **labels[0])
+            self.add(labels=labels[1:], **labels[0])
 
         size = None
         if transform_slice is not None:
