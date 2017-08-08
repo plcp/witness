@@ -472,7 +472,7 @@ class tbsl(_base):
             mu = min_uncertainty
 
         _truth = np.ones(size) - mu
-        _confidence = 1 - mu
+        _confidence = np.ones(size) * (1 - mu)
         _apriori = np.ones(size) * apriori
 
         return (_truth, _confidence, _apriori)
@@ -483,7 +483,7 @@ class tbsl(_base):
             mu = min_uncertainty
 
         _truth = -(np.ones(size) - mu)
-        _confidence = 1 - mu
+        _confidence = np.ones(size) * (1 - mu)
         _apriori = np.ones(size) * apriori
 
         return (_truth, _confidence, _apriori)
