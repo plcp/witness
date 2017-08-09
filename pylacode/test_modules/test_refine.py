@@ -5,7 +5,9 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 import warnings
 
+import numpy as np
 import pylacode as pl
+import pylacode.logic
 import pylacode.refine
 
 assert sys.version_info >= (2, 7)
@@ -59,13 +61,23 @@ def run():
         assert str(w[0].message) == m
 
     # construct a label collection
-    lc = pl.refine.label('again', 13)
+    lc = pl.refine.label('again', 21)
     assert 'again' + object.__repr__(lc) == repr(lc)
     assert repr(lc.source) == 'label<again>()'
-    assert lc.size == 13
+    assert lc.size == 21
 
     # add various labels to the collection
     lc.add(label='false', value=False)
-    lc.add([dict(label='true', value=True)])
+    lc.add(dict(label='true', value=True))
+    lc.add([
+        dict(label='always', value=None),
+        dict(label='even', value=True),
+        dict(label='ever', value=[True, False, False]),
+        dict(label='still', value=np.bool_(False)),
+        dict(label='there', value=[np.bool_(True), np.bool_(False)]),
+        dict(label='more', value=pl.logic.tbsl.true(4)),
+        dict(label='again', value=pl.logic.ebsl.uniform(7)),
+        dict(label='exotic', transform_slice=slice(3, None, 3)),
+    ])
 
     return True

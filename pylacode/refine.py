@@ -55,7 +55,7 @@ def _from_boollist(value, size):
     assert len(value) == size
     _value = pl.logic.tbsl(size=size)
     for idx, _b in enumerate(value):
-        _value[idx] = _from_bool(value, 1)
+        _value[idx] = _from_bool(_b, 1)
     return _value
 
 
@@ -120,6 +120,7 @@ class label(data):
                         inverse_slice=inverse_slice,
                         inverse_op=inverse_op), labels))
             self.add(labels=labels[1:], **labels[0])
+            return
 
         size = None
         if transform_slice is not None:
@@ -131,13 +132,15 @@ class label(data):
 
         if transform_slice is None:
             transform_slice = slice(self.last, self.last + size)
+            self.last += size
+            if self.last > self.size:
+                pl.error.warn('Undersized label collection')
         else:
             assert size == len(pl.logic.tbsl(size=self.size)[transform_slice])
 
         if inverse_slice is None:
             inverse_slice = transform_slice
 
-        self.last += size
         self.labels[label] = self.item(
             label=label,
             value=value,
