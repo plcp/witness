@@ -97,6 +97,24 @@ def run():
         x = vtype.uniform(3)
         assert (x == (~x).invert()) and (~x == ~(~x).invert())
 
+    # test getitem & setitem
+    for vtype in test_types:
+        x = vtype(vtype.true(size=5))
+
+        x[2:4] = ~x[2:4]
+        x[::2] = ~x[::2]
+
+        assert x[0] == vtype(vtype.false())
+        assert x[1] == vtype(vtype.true())
+        assert x[2] == vtype(vtype.true())
+        assert x[3] == vtype(vtype.false())
+        assert x[4] == vtype(vtype.false())
+
+        y = vtype(vtype.false(size=5))
+        x[1:3] = y[0:2]
+
+        assert x == y
+
     # test if « p(A) + p(!A) == 1 »
     for vtype in test_types:
         x = vtype.uniform(11)

@@ -218,6 +218,18 @@ class _base(object):
 
         return self.__imul__(pl.error.try_inverse(_trust))
 
+    def set_value(self, new_value, _slice=slice(None)):
+        if islogic(new_value):
+            new_value = new_value.cast_to(self.__class__).value
+        for idx, (l, r) in enumerate(zip(self.value, new_value)):
+            if l is r:
+                continue
+            l[_slice] = r[:]
+
+    def __setitem__(self, slice_or_index, value):
+        _value = self.__class__(value).value
+        self.set_value(_value, slice_or_index)
+
     def __getitem__(self, slice_or_index):
         _value = [v[slice_or_index] for v in self.value]
         return self.__class__(tuple(_value))
