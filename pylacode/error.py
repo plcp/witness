@@ -37,7 +37,7 @@ state = _state()
 def warn(text):
     global last_warning
     last_warning = text
-    warnings.warn(text, RuntimeWarning)
+    warnings.warn(text, RuntimeWarning, 2)
 
 
 def _try_inverse_details(vector):
