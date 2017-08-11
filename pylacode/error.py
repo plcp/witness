@@ -28,6 +28,7 @@ class _state:
     inverse_suppress = True
     inverse_inf = True
     inverse_nan = True
+    verbose = True
     quiet = False
 
 
@@ -37,6 +38,10 @@ state = _state()
 def warn(text):
     global last_warning
     last_warning = text
+    if not state.verbose:
+        warnings.warn(text, RuntimeWarning)
+        return
+
     try:
         last = ''
         infos = traceback.extract_stack()[-2][0:3]
