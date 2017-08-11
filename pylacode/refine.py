@@ -142,11 +142,11 @@ class label(data):
         else:
             assert size == len(pl.logic.tbsl(size=self.size)[transform_slice])
 
-        if inverse_op is 'by_trust':
+        if inverse_op == 'by_trust':
             inverse_op = lambda x, y: np.average(np.abs(x.trust - y.trust))
-        elif inverse_op is 'by_truth':
+        elif inverse_op == 'by_truth':
             inverse_op = lambda x, y: np.average(np.abs(x.truth - y.truth))
-        elif inverse_op is 'by_probability':
+        elif inverse_op == 'by_probability':
             inverse_op = lambda x, y: np.average(
                 np.abs(x.probability - y.probability))
 
@@ -176,21 +176,26 @@ class label(data):
         return _evidence
 
     def transform(self, state):
-        _refined = False
-        for idx, payload in state.remaining_data:
-            _label = self.transform_label(payload)
-            if _label is None and payload[0].startswith('!'):
-                _label = self.transform_label(payload[1:])
-                if _label is not None:
-                    _label.value.invert()
+        def tconv(label):
+            # try with transform(label)
+            payload = self.transform_label(label)
 
-            if _label is not None:
-                state.ouput.append(_label)
-                del state.remaining_data[idx]
-                _refined = True
+            # then, try with !transform(label) (if label startswith !)
+            # then, try with !transform(!label)
+            if payload is None:
+                if label.startswith('!'):
+                    payload = self.transform_label(label[1:])
+                if payload is None:
+                    payload = self.transform_label('!' + label)
+                if payload is not None:
+                    payload.value.invert()
+            return payload
 
-        if not _refined:
-            raise NoDataRefinedError()
+        output = pl.table.foreach(tconv, state.remaining_data)
+        if len(output) < 1:
+            raise NoDataRefinedError
+        else:
+            state.output += output
 
     def match_label(self, label, evidence, threshold=0.25):
         item = self.get_label(label)
@@ -207,14 +212,16 @@ class label(data):
         return item.label
 
     def inverse(self, state, threshold=0.25):
-        _refined = False
-        for idx, evidence in state.remaining_data:
+        def imatch(evidence):
+            results = []
             for label in self.labels:
                 v = self.match_label(label, evidence, threshold=threshold)
                 if v is not None:
-                    state.output.append(v)
-                    del state.remaining_data[idx]
-                    _refined = True
+                    results.append(v)
+            return results
 
-        if not _refined:
+        output = pl.table.foreach(imatch, state.remaining_data)
+        if len(output) < 1:
             raise NoDataRefinedError()
+        else:
+            state.output += output
