@@ -11,6 +11,14 @@ import pylacode.tools
 
 assert sys.version_info >= (2, 7)
 
+def foreach(f, target):
+    results = []
+    for idx, e in zip(range(len(target) - 1, -1, -1), reversed(target)):
+        result = pl.tools.listify(f(e))
+        if len(result) > 0:
+            del target[idx]
+            results += result
+    return results
 
 class translation(object):
     def __init__(self, backends):
