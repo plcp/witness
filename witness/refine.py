@@ -107,7 +107,7 @@ class label(data):
             label=None,
             value=None,
             transform_slice=None,
-            inverse_op='by_trust',
+            inverse_op='by_truth',
             size=None):
         labels = wit.tools.listify(labels)
         if label is None:
@@ -209,9 +209,9 @@ class label(data):
         if item.inverse_op(payload_value, item.value) > threshold:
             return None
 
-        return item.label
+        return str(item.label)
 
-    def inverse(self, state, threshold=0.25):
+    def inverse(self, state, threshold=0.15):
         def imatch(evidence):
             results = []
             for label in self.labels:

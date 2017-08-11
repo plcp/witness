@@ -12,6 +12,7 @@ import time
 import witness as wit
 import witness.error
 import witness.tools
+import witness.logic
 import witness.source
 
 assert sys.version_info >= (2, 7)
@@ -65,6 +66,7 @@ class evidence:
                  value=None,
                  size=None,
                  source=None,
+                 static_source=False,
                  merge_operator=operator.add,
                  **mdata):
 
@@ -84,10 +86,18 @@ class evidence:
 
         global _local_occuring_uid
         self.merge_operator = merge_operator
+        self.static_source = static_source
         self.source = source
         self.mdata = dict(**mdata)
         self.uuid = create_uuid(source)
         self.uid = int(_local_occuring_uid)
+
+    def clone(self):
+        return evidence(
+                 value=self.value,
+                 source=self.source,
+                 merge_operator=self.merge_operator,
+                 mdata=self.mdata)
 
     def __lshift__(self, other):
         assert isinstance(other, evidence)
@@ -95,7 +105,7 @@ class evidence:
 
         value = self.merge_operator(self.value, other.value)
         source = None
-        if self.source == other.source:
+        if self.static_source or self.source == other.source:
             source = self.source
         else:
             source = wit.source.merge_source(

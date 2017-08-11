@@ -36,16 +36,16 @@ API by the end-user while remaining open to more subtle approaches.
 Thus, being able to write readable code such as:
 
 ```python
->>> knowledge_base = wit.oracle.oracle(wit.backends.naive)
->>> knowledge_base.add_labels(weather_labels)
->>> knowledge_base.submit('!warm')
->>> knowledge_base.query('cold')
+>>> o = wit.oracle.oracle(wit.backends.naive)
+>>> o.add_labels(weather_labels)
+>>> o.submit('!warm')
+>>> o.query('cold')
 ['cold']
->>> knowledge_base.submit('thunder')
->>> knowledge_base.query('thunderstorm')
+>>> o.submit('thunder')
+>>> o.query('thunderstorm')
 ['cloudly', 'thunder', 'cold']
->>> knowledge_base.submit(['rainy', 'windy'])
->>> knowledge_base.query('thunderstorm')
+>>> o.submit(['rainy', 'windy'])
+>>> o.query('thunderstorm')
 ['thunderstorm', 'rainy', 'windy', 'cloudly', 'thunder', 'cold', 'wet']
 ```
 

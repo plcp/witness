@@ -56,7 +56,8 @@ class _base_source(object):
     def __str__(self):
         s = self.name
         if self._genericity is not None:
-            s += '<{}>'.format(wit.tools.to_str(self._genericity, _base_source))
+            s += '<{}>'.format(
+                wit.tools.to_str(self._genericity, _base_source))
 
         if len(self._attributes) < 1:
             s += '()'
@@ -97,6 +98,11 @@ class named_source(_base_source):
     def __init__(self, name, **attributes):
         _base_source.__init__(self, **attributes)
         self.name = name
+
+
+class oracle_source(_base_source):
+    name = 'oracle'
+    prop = 'name'
 
 
 class merge_source(_base_source):

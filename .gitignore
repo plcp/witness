@@ -4,3 +4,4 @@
 *venv*
 _*.py
 _*.sh
+!__init__.py

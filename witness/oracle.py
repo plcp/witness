@@ -15,6 +15,7 @@ assert sys.version_info >= (2, 7)
 class backend(object):
     def __init__(self, parent):
         self.parent = parent
+        self.reset()
 
     def reset(self):
         raise NotImplementedError
@@ -33,45 +34,44 @@ class oracle(object):
     def __init__(self, backend_class, *kargs, **kwargs):
         self.backend = backend_class(parent=self, *kargs, **kwargs)
         self.backend_class = backend_class
-        self.reset(backend=True)
+        self.reset(tables=True)
 
-    def add_table(self, tables):
+    def add_tables(self, tables):
         tables = wit.tools.listify(tables)
         for table in tables:
             table.reset(oracle=True)
             table.oracle = self
             self.tables.append(table)
 
-    def add_label(self, labels):
+    def add_labels(self, labels):
         labels = wit.tools.listify(labels)
         for label in labels:
             label.reset(oracle=True)
             label.oracle = self
-            self.lables.append(label)
+            self.labels.append(label)
 
-    def reset(self, backend=False):
+    def reset(self, tables=False, backend=True):
         if backend:
             self.backend.reset()
-        self.tables = []
-        self.labels = []
+        if tables:
+            self.tables = []
+            self.labels = []
 
-    def digest_data(self, payloads, inverse=False):
+    def digest_payloads(self, payloads, inverse=False):
         payloads = wit.tools.listify(payloads)
         _output = []
         for table in self.tables:
-            table.digest(payloads, inverse=inverse)
-            _output += table.output
+            _output += table.digest(payloads, inverse=inverse)
         return _output
 
-    def digest_label(self, labels, inverse=False):
+    def digest_labels(self, labels, inverse=False):
         labels = wit.tools.listify(labels)
         _output = []
-        for table in self.tables:
-            table.digest(labels, inverse=inverse)
-            _output += table.output
+        for table in self.labels:
+            _output += table.digest(labels, inverse=inverse)
         return _output
 
-    def digest(self, various, inverse=False, try_data=False):
+    def digest(self, various, try_data=False):
         various = wit.tools.listify(various)
         _outputs = []
         for v in various:
@@ -80,13 +80,13 @@ class oracle(object):
                 continue
 
             if isinstance(v, type('')):
-                _output = self.digest_label(v, inverse=inverse)
+                _output = self.digest_labels(v)
                 if len(_output) > 0:
                     _outputs += _output
                     continue
 
             if try_data:
-                _output = self.digest_data(v, inverse=inverse)
+                _output = self.digest_payloads(v)
                 if len(_output) > 0:
                     _outputs += _output
                     continue
@@ -96,11 +96,11 @@ class oracle(object):
     def submit(self, various):
         self.backend.submit(self.digest(various))
 
-    def submit_data(self, payloads):
-        self.submit(self.digest_data(payloads))
+    def submit_payloads(self, payloads):
+        self.submit(self.digest_payloads(payloads))
 
-    def submit_label(self, labels):
-        self.submit(self.digest_label(labels))
+    def submit_labels(self, labels):
+        self.submit(self.digest_labels(labels))
 
     def learn(self, answers, history=None, try_data=False):
         answers = wit.tools.listify(answers)
@@ -115,6 +115,6 @@ class oracle(object):
         _queries = self.digest(queries, try_data=try_data)
         _answers = self.backend.query(_queries)
         if inverse_answer:
-            return self.digest(_answers, inverse=True, try_data=True)
+            return self.digest_labels(_answers, inverse=True)
         else:
             return _answers
