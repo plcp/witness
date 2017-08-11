@@ -23,7 +23,7 @@ def foreach(f, target):
 class translation(object):
     def __init__(self, backends):
         self.table = self
-        self.backends = backends
+        self.backends = pl.tools.listify(backends)
         self.reset(oracle=True)
 
     def reset(self, oracle=False):
@@ -54,7 +54,7 @@ class translation(object):
         self.remaining_data = list(payloads)
         self.pending_backends = list(self.backends)
 
-    def trigger(self, backend=None):
+    def apply(self, backend=None):
         if backend is None:
             backend = self.active_backend
             if self.active_backend is None:
@@ -72,7 +72,7 @@ class translation(object):
 
         return False
 
-    def next(self, retain_history=False, **mdata):
+    def iterate(self, retain_history=False, **mdata):
         if self.finished:
             return False
 
@@ -84,7 +84,7 @@ class translation(object):
         self.mdata = dict(self.mdata, **mdata)
         self.active_backend = backend
 
-        if self.execute():
+        if self.apply():
             self.previous_state = previous_state
         return True
 
