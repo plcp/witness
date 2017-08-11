@@ -50,7 +50,7 @@ def run():
     re = pl.refine.data('more', None, None)
     with warnings.catch_warnings(record=True) as w:
         m = ('No inverse function provided while refining ' +
-             'data with more backend ' +
+             'data with "more" backend ' +
              '(id: more{}).'.format(object.__repr__(re)))
 
         try:
@@ -58,7 +58,7 @@ def run():
             assert False
         except pl.refine.NoDataRefinedError:
             assert True
-        assert str(w[0].message) == m
+        assert m in str(w[0].message).replace('\n', ' ')
 
     # construct a label collection
     lc = pl.refine.label('again', 21)

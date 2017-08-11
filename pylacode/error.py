@@ -37,8 +37,34 @@ state = _state()
 def warn(text):
     global last_warning
     last_warning = text
-    warnings.warn(text, RuntimeWarning, 2)
+    try:
+        last = ''
+        infos = traceback.extract_stack()[-2][0:3]
+        prefix = ''
+        for infos in traceback.extract_stack():
+            s = ('\n' + 'From file "{}", line {}, in {}:').format(*infos)
+            if not s == last:
+                prefix = prefix + s
+                last = s
 
+        prefix = '\n'
+        stack = traceback.format_stack()[:-2]
+        for line in stack:
+            if '[Previous line repeated' in line:
+                continue
+            if not line.replace('\n', ' ') in prefix.replace('\n', ' '):
+                prefix += line
+
+        prefix += '    '
+        try:
+            prefix += ' ' * prefix.split('\n')[-2].strip().find('(')
+        except BaseException:
+            pass
+        prefix += ' ^ '
+
+        warnings.warn(prefix + text + '\n', RuntimeWarning, 2)
+    except BaseException:
+        warnings.warn(text, RuntimeWarning)
 
 def _try_inverse_details(vector):
     _vector = None

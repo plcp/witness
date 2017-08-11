@@ -32,7 +32,8 @@ class data(object):
     def inverse(self, state):
         if self._inverse is None:
             pl.error.warn('No inverse function provided while refining data ' +
-                          'with {} backend (id: {}).'.format(self.name, self))
+                          'with "{}" backend (id: {}).'.format(
+                          self.name, self))
             raise NoDataRefinedError()
         self._inverse(state=state, parent=self)
 

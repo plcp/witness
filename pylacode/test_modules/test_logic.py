@@ -157,11 +157,11 @@ def run():
                 for i in range(0, len(w)):
                     _wi = None
                     if sys.version_info < (3, ):
-                        _wi = w[i].message
+                        _wi = str(w[i].message)
                     else:
                         _wi = str(w[i])
 
-                    if pl.error._stable_warntext in _wi:
+                    if pl.error._stable_warntext in _wi.replace('\n', ' '):
                         _warns.append(w[i])
 
                 if len(_warns) < 1:
