@@ -274,7 +274,7 @@ def _check_op_forall(op_name, values):
         for i, c in enumerate(checks):
             error = None
             if not isinstance(c, (bool, np.bool_)):
-                error = "Equality '==' doesn't return a proper boolean !"
+                error = "Equality '==' doesn't return a proper boolean !"
             elif not c:
                 error = 'Incoherent results !'
 

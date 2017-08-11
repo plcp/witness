@@ -77,7 +77,7 @@ def run():
         dict(label='there', value=[np.bool_(True), np.bool_(False)]),
         dict(label='more', value=wit.logic.tbsl.true(4)),
         dict(label='again', value=wit.logic.ebsl.uniform(7)),
-        dict(label='exotic', transform_slice=slice(3, None, 3)),
+        dict(label='exotic', where=slice(3, None, 3)),
     ])
 
     return True

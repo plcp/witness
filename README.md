@@ -14,7 +14,7 @@ Please note `numpy` is required as dependency :
 pip install numpy
 git clone https://github.com/plcp/witness
 cd witness
-python -i -c "import witness as wit"
+python -i example.py
 ```
 We support **python2.7** and **python3.6** (other versions left untested).
 
@@ -36,6 +36,8 @@ API by the end-user while remaining open to more subtle approaches.
 Thus, being able to write readable code such as:
 
 ```python
+>>> import witness as wit
+>>> from example import weather_labels
 >>> o = wit.oracle.oracle(wit.backends.naive)
 >>> o.add_labels(weather_labels)
 >>> o.submit('!warm')
@@ -43,10 +45,10 @@ Thus, being able to write readable code such as:
 ['cold']
 >>> o.submit('thunder')
 >>> o.query('thunderstorm')
-['cloudly', 'thunder', 'cold']
->>> o.submit(['rainy', 'windy'])
+['cloudly', 'thunder']
+>>> o.submit('rainstorm')
 >>> o.query('thunderstorm')
-['thunderstorm', 'rainy', 'windy', 'cloudly', 'thunder', 'cold', 'wet']
+['thunderstorm', 'rainy', 'thunder', 'cloudly']
 ```
 
 We also support various opinion-related abstractions to provide easy means to

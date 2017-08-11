@@ -79,7 +79,7 @@ class oracle(object):
                 _outputs.append(v)
                 continue
 
-            if isinstance(v, type('')):
+            if wit.tools.is_string(v):
                 _output = self.digest_labels(v)
                 if len(_output) > 0:
                     _outputs += _output
