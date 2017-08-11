@@ -19,7 +19,7 @@ def build_weather_labels():
 weather_labels = build_weather_labels()
 
 if __name__ == '__main__':
-    o = wit.oracle.oracle(wit.backends.naive)
+    o = wit.oracle.new(wit.backends.naive)
     o.add_labels(weather_labels)
 
     o.submit('cold')

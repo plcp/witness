@@ -118,3 +118,5 @@ class oracle(object):
             return self.digest_labels(_answers, inverse=True)
         else:
             return _answers
+
+new = oracle

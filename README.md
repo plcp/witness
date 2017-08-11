@@ -38,7 +38,7 @@ Thus, being able to write readable code such as:
 ```python
 >>> import witness as wit
 >>> from example import weather_labels
->>> o = wit.oracle.oracle(wit.backends.naive)
+>>> o = wit.oracle.new(wit.backends.naive)
 >>> o.add_labels(weather_labels)
 >>> o.submit('!warm')
 >>> o.query('cold')
