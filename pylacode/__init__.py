@@ -15,7 +15,7 @@ api_version = (0, 0, 2)
 
 
 class test:
-    test_list = ['logic', 'source', 'fuzzy', 'refine']
+    test_list = ['logic', 'source', 'fuzzy', 'refine', 'table']
 
     def __init__(self):
         self.run()
