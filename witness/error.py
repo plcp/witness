@@ -38,6 +38,9 @@ state = _state()
 def warn(text):
     global last_warning
     last_warning = text
+    if state.quiet:
+        return
+
     if not state.verbose:
         warnings.warn(text, RuntimeWarning)
         return
@@ -106,16 +109,14 @@ def try_inverse(vector):
     except FloatingPointError as e:
         if not state.inverse_suppress:
             raise e
-        elif not state.quiet:
+        else:
             warn(_stable_warntext)
 
         try:
             with np.errstate(divide='raise', invalid='raise'):
                 return _try_inverse_details(vector)
         except FloatingPointError as f:
-            if not state.quiet:
-                traceback.print_exc()
-                warn(_unrecov_failure)
+            warn(_unrecov_failure)
 
         raise e  # Unable to recover from/suppress numerical instability
     assert False  # Unreachable
