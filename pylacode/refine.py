@@ -107,8 +107,8 @@ class label(data):
             label=None,
             value=None,
             transform_slice=None,
-            inverse_slice=None,
-            inverse_op=operator.add):
+            inverse_op='by_trust',
+            size=None):
         labels = pl.tools.listify(labels)
         if label is None:
             if len(labels) == 0:
@@ -118,12 +118,10 @@ class label(data):
                         value=value,
                         size=size,
                         transform_slice=transform_slice,
-                        inverse_slice=inverse_slice,
                         inverse_op=inverse_op), labels))
             self.add(labels=labels[1:], **labels[0])
             return
 
-        size = None
         if transform_slice is not None:
             assert isinstance(transform_slice, slice)
             size = len(pl.logic.tbsl(size=self.size)[transform_slice])
@@ -131,22 +129,32 @@ class label(data):
         value = label_castvalue(value, size)
         size = len(value)
 
-        if transform_slice is None:
+        if transform_slice is None and len(value) == self.size:
+            transform_slice = slice(None)
+        elif transform_slice is None:
+
             transform_slice = slice(self.last, self.last + size)
             self.last += size
             if self.last > self.size:
-                pl.error.warn('Undersized label collection')
+                oversized_label_collection = ('Oversized label collection: '
+                    + 'need {}, only {} provided'.format(self.last, self.size))
+                pl.error.warn(oversized_label_collection)
         else:
             assert size == len(pl.logic.tbsl(size=self.size)[transform_slice])
 
-        if inverse_slice is None:
-            inverse_slice = transform_slice
+        if inverse_op is 'by_trust':
+            inverse_op = lambda x, y: np.average(np.abs(x.trust - y.trust))
+        elif inverse_op is 'by_truth':
+            inverse_op = lambda x, y: np.average(np.abs(x.truth - y.truth))
+        elif inverse_op is 'by_probability':
+            inverse_op = lambda x, y: np.average(
+                np.abs(x.probability - y.probability))
 
         self.labels[label] = self.item(
             label=label,
             value=value,
+            size=size,
             transform_slice=transform_slice,
-            inverse_slice=inverse_slice,
             inverse_op=inverse_op)
 
         if len(labels) > 0:
@@ -184,5 +192,29 @@ class label(data):
         if not _refined:
             raise NoDataRefinedError()
 
-    def inverse(self, state):
-        raise NoDataRefinedError()  # todo
+    def match_label(self, label, evidence, threshold=0.25):
+        item = self.get_label(label)
+        if item is None:
+            return None
+
+        payload_value = evidence.value[item.transform_slice]
+        if not item.size == len(payload_value):
+            return None
+
+        if item.inverse_op(payload_value, item.value) > threshold:
+            return None
+
+        return item.label
+
+    def inverse(self, state, threshold=0.25):
+        _refined = False
+        for idx, evidence in state.remaining_data:
+            for label in self.labels:
+                v = self.match_label(label, evidence, threshold=threshold)
+                if v is not None:
+                    state.output.append(v)
+                    del state.remaining_data[idx]
+                    _refined = True
+
+        if not _refined:
+            raise NoDataRefinedError()
