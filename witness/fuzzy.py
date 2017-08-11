@@ -11,9 +11,9 @@ import time
 
 import witness as wit
 import witness.error
-import witness.tools
 import witness.logic
 import witness.source
+import witness.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -94,10 +94,10 @@ class evidence:
 
     def clone(self):
         return evidence(
-                 value=self.value,
-                 source=self.source,
-                 merge_operator=self.merge_operator,
-                 mdata=self.mdata)
+            value=self.value,
+            source=self.source,
+            merge_operator=self.merge_operator,
+            mdata=self.mdata)
 
     def __lshift__(self, other):
         assert isinstance(other, evidence)
@@ -116,6 +116,7 @@ class evidence:
             source=source,
             merge_operator=self.merge_operator,
             **self.mdata)
+
 
 def squash(*evidences):
     _evidences = []

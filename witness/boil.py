@@ -4,9 +4,9 @@ from __future__ import (absolute_import, division, print_function,
 
 import witness as wit
 import witness.backends
-import witness.refine
 import witness.error
-import witness.table
 import witness.oracle
+import witness.refine
+import witness.table
 
 wit.error.state.quiet = True

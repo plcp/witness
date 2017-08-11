@@ -351,8 +351,12 @@ class obsl(_base):
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
 
-        norm = wit.error.try_inverse(0. + self.uncertainty + other.uncertainty -
-                                    self.uncertainty * other.uncertainty)
+        norm = wit.error.try_inverse(
+            0. +
+            self.uncertainty +
+            other.uncertainty -
+            self.uncertainty *
+            other.uncertainty)
 
         _belief = (
             self.belief * other.uncertainty + other.belief * self.uncertainty

@@ -74,6 +74,7 @@ def warn(text):
     except BaseException:
         warnings.warn(text, RuntimeWarning)
 
+
 def _try_inverse_details(vector):
     _vector = None
     if issubclass(vector.dtype.type, np.float):

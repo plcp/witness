@@ -3,9 +3,11 @@ from __future__ import (absolute_import, division, print_function,
                         unicode_literals, with_statement)
 
 import sys
+
 from witness.hell import handle_unicode, is_string
 
 assert sys.version_info >= (2, 7)
+
 
 def listify(target):
     if target is None:
@@ -14,9 +16,10 @@ def listify(target):
         return target
     return [target]
 
+
 def to_str(target, strlify_class=None.__class__):
     if is_string(target):
-        return handle_unicode(target)
+        return str(target)
     elif isinstance(target, dict):
         return ('{' + ','.join([
             str(k) + ':' + str(v)

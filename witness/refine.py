@@ -31,9 +31,11 @@ class data(object):
 
     def inverse(self, state):
         if self._inverse is None:
-            wit.error.warn('No inverse function provided while refining data '
-                            + 'with "{}" backend (id: {}).'.format(
-                          self.name, self))
+            wit.error.warn(
+                'No inverse function provided while refining data ' +
+                'with "{}" backend (id: {}).'.format(
+                    self.name,
+                    self))
             raise NoDataRefinedError()
         self._inverse(state=state, parent=self)
 
@@ -141,18 +143,19 @@ class label(data):
             where = slice(self.last, self.last + size)
             self.last += size
             if self.last > self.size:
-                oversized_label_collection = ('Oversized label collection: '
-                    + 'need {}, only {} provided'.format(self.last, self.size))
+                oversized_label_collection = (
+                    'Oversized label collection: ' +
+                    'need {}, only {} provided'.format(self.last, self.size))
                 wit.error.warn(oversized_label_collection)
         else:
             assert size == len(wit.logic.tbsl(size=self.size)[where])
 
         if inverse_op == 'by_trust':
-            inverse_op = lambda x, y: np.average(np.abs(x.trust - y.trust))
+            def inverse_op(x, y): return np.average(np.abs(x.trust - y.trust))
         elif inverse_op == 'by_truth':
-            inverse_op = lambda x, y: np.average(np.abs(x.truth - y.truth))
+            def inverse_op(x, y): return np.average(np.abs(x.truth - y.truth))
         elif inverse_op == 'by_probability':
-            inverse_op = lambda x, y: np.average(
+            def inverse_op(x, y): return np.average(
                 np.abs(x.probability - y.probability))
 
         self.labels[label] = self.item(

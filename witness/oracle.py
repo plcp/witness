@@ -119,4 +119,5 @@ class oracle(object):
         else:
             return _answers
 
+
 new = oracle

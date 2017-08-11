@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
-from __future__ import (print_function, unicode_literals)
+from __future__ import print_function, unicode_literals
 
 import witness as wit
 import witness.boil
+
 
 def build_weather_labels():
     w = wit.refine.label(name='weather', size=5)
@@ -16,6 +17,8 @@ def build_weather_labels():
     w.add(label='rainstorm', where=slice(0, 3))
     w.add(label='thunderstorm', where=slice(1, 5))
     return wit.table.translation(w)
+
+
 weather_labels = build_weather_labels()
 
 if __name__ == '__main__':
@@ -27,14 +30,13 @@ if __name__ == '__main__':
 
     o.submit('rainy')
     assert 'rainy' in o.query('rainstorm')
-    assert not 'rainstorm' in o.query('rainstorm')
+    assert 'rainstorm' not in o.query('rainstorm')
 
     o.submit('cloudly')
     assert 'rainstorm' in o.query('rainstorm')
-    assert not 'thunderstorm' in o.query('rainstorm')
-    assert not 'thunderstorm' in o.query('thunderstorm')
+    assert 'thunderstorm' not in o.query('rainstorm')
+    assert 'thunderstorm' not in o.query('thunderstorm')
 
     o.submit('windy')
-    assert not 'thunderstorm' in o.query('rainstorm')
+    assert 'thunderstorm' not in o.query('rainstorm')
     assert 'thunderstorm' in o.query('thunderstorm')
-
