@@ -11,6 +11,7 @@ import time
 
 import pylacode as pl
 import pylacode.error
+import pylacode.tools
 import pylacode.source
 
 assert sys.version_info >= (2, 7)
@@ -105,3 +106,14 @@ class evidence:
             source=source,
             merge_operator=self.merge_operator,
             **self.mdata)
+
+def squash(*evidences):
+    _evidences = []
+    for e in evidences:
+        _evidences += pl.tools.listify(e)
+    evidences = _evidences
+
+    base = evidences[0]
+    for e in evidences[1:]:
+        base <<= e
+    return base
