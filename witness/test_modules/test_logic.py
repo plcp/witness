@@ -9,13 +9,13 @@ import traceback
 import warnings
 
 import numpy as np
-import pylacode as pl
-import pylacode.error
-import pylacode.logic
+import witness as wit
+import witness.error
+import witness.logic
 
 assert sys.version_info >= (2, 7)
 
-test_types = pl.logic.types
+test_types = wit.logic.types
 test_ops = [
     '__invert__', 'probability', 'alpha', 'beta', 'weight', '__iadd__',
     'trust', '__imul__', '__idiv__', '__iand__', '__ior__', 'c', 'true',
@@ -28,15 +28,15 @@ def _similar(a, b):
     return np.allclose(
         a,
         b,
-        rtol=pl.logic.eq_rtol,
-        atol=pl.logic.eq_atol,
-        equal_nan=pl.logic.eq_nan)
+        rtol=wit.logic.eq_rtol,
+        atol=wit.logic.eq_atol,
+        equal_nan=wit.logic.eq_nan)
 
 
 # run tests
 def run():
     # test without infinity-semantics (cause NaNs)
-    pl.error.state.inverse_inf = False
+    wit.error.state.inverse_inf = False
 
     # test basic constructor
     for vtype in test_types:
@@ -55,8 +55,8 @@ def run():
     # test islogic
     for vtype in test_types:
         x = vtype(size=5)
-        assert pl.logic.islogic(x)
-        assert not pl.logic.islogic(x.value)
+        assert wit.logic.islogic(x)
+        assert not wit.logic.islogic(x.value)
 
     # test by-name getters and setters of internal value
     for vtype in test_types:
@@ -161,7 +161,7 @@ def run():
                     else:
                         _wi = str(w[i])
 
-                    if pl.error._stable_warntext in _wi.replace('\n', ' '):
+                    if wit.error._stable_warntext in _wi.replace('\n', ' '):
                         _warns.append(w[i])
 
                 if len(_warns) < 1:
@@ -189,20 +189,20 @@ def run():
 def _unstable_tests():
     # test basic discounting
     for vtype in test_types:
-        x, y = pl.logic.uniform(599, 2, vtype)
+        x, y = wit.logic.uniform(599, 2, vtype)
         assert x * y.trust == x * y
         assert not x * y.trust == y * x
         assert not x * y == y * x
 
     # test left/right-distributivity of discounting upon consensus
     for vtype in test_types:
-        x, y, z = pl.logic.uniform(607, 3, vtype)
+        x, y, z = wit.logic.uniform(607, 3, vtype)
         assert (x * z) + (y * z) == (x + y) * z
         assert (z * x) + (z * y) == z * (x + y)
 
     # test weak commutativity and associativity
     for vtype in test_types:
-        x, y, z = pl.logic.uniform(601, 3, vtype)
+        x, y, z = wit.logic.uniform(601, 3, vtype)
         assert (x * y * z) == (x * z * y)
         assert not (x * y * z) == (y * x * z)
         assert x * (y * z) == (x * y) * z
@@ -216,7 +216,7 @@ def _unstable_tests():
 
     # test various calculus upon product & trust
     for vtype in test_types:
-        x, y, z = pl.logic.uniform(463, 3, vtype)
+        x, y, z = wit.logic.uniform(463, 3, vtype)
         assert x / 2 == (x * 2) / 4
         assert (x * y) / y == x
         assert (((x * 2) / y) / 2) * y == x
@@ -291,12 +291,12 @@ def _check_op_forall(op_name, values):
 
                         differ = [abs(o - e) for o, e in zip(obt, exp)]
                         rerror = [
-                            pl.logic.eq_atol + pl.logic.eq_rtol * abs(e)
+                            wit.logic.eq_atol + wit.logic.eq_rtol * abs(e)
                             for e in exp
                         ]
                     else:
                         differ = abs(obt - exp)
-                        rerror = pl.logic.eq_atol + pl.logic.eq_rtol * abs(exp)
+                        rerror = wit.logic.eq_atol + wit.logic.eq_rtol * abs(exp)
 
                 except BaseException as e:
                     differ = 'Unavailable: {}'.format(e)
@@ -334,7 +334,7 @@ def _check_op(op_name):
     for vtype in vtypes:
         op = _get_op_from_name(vtype, op_name)
         nargs = _get_parameter_count(op)
-        args = pl.logic.uniform(width, nargs, vtype)
+        args = wit.logic.uniform(width, nargs, vtype)
         assert _check_op_forall(op_name, args)
 
     return True

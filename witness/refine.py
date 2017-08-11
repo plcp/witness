@@ -6,11 +6,11 @@ import operator
 import sys
 
 import numpy as np
-import pylacode as pl
-import pylacode.error
-import pylacode.fuzzy
-import pylacode.source
-import pylacode.tools
+import witness as wit
+import witness.error
+import witness.fuzzy
+import witness.source
+import witness.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -31,7 +31,7 @@ class data(object):
 
     def inverse(self, state):
         if self._inverse is None:
-            pl.error.warn('No inverse function provided while refining data ' +
+            wit.error.warn('No inverse function provided while refining data ' +
                           'with "{}" backend (id: {}).'.format(
                           self.name, self))
             raise NoDataRefinedError()
@@ -45,16 +45,16 @@ def _from_bool(value, size):
     if size is None:
         size = 1
     if value:
-        return pl.logic.tbsl(pl.logic.tbsl.true(size))
+        return wit.logic.tbsl(wit.logic.tbsl.true(size))
     else:
-        return pl.logic.tbsl(pl.logic.tbsl.false(size))
+        return wit.logic.tbsl(wit.logic.tbsl.false(size))
 
 
 def _from_boollist(value, size):
     if size is None:
         size = len(value)
     assert len(value) == size
-    _value = pl.logic.tbsl(size=size)
+    _value = wit.logic.tbsl(size=size)
     for idx, _b in enumerate(value):
         _value[idx] = _from_bool(_b, 1)
     return _value
@@ -64,7 +64,7 @@ def label_castvalue(value, size):
     if value is None:
         if size is None:
             size = 1
-        return pl.logic.tbsl(pl.logic.tbsl.true(size))
+        return wit.logic.tbsl(wit.logic.tbsl.true(size))
     elif isinstance(value, (bool, np.bool, np.bool_)):
         return _from_bool(value, size)
     elif (isinstance(value, list) and isinstance(value[0],
@@ -75,8 +75,8 @@ def label_castvalue(value, size):
         if size is None:
             size = len(value[0])
         assert len(value[0]) == size
-        return pl.logic.tbsl(value)
-    elif pl.logic.islogic(value):
+        return wit.logic.tbsl(value)
+    elif wit.logic.islogic(value):
         return value.tbsl
     else:
         raise AssertionError('Unable to build a label from {}'.format(value) +
@@ -97,9 +97,9 @@ class label(data):
         self.labels = {}
 
         if source is None:
-            self.source = pl.source.label_source(tag=self.name)
+            self.source = wit.source.label_source(tag=self.name)
         else:
-            assert pl.source.issource(source)
+            assert wit.source.issource(source)
             self.source = source
 
     def add(self,
@@ -109,7 +109,7 @@ class label(data):
             transform_slice=None,
             inverse_op='by_trust',
             size=None):
-        labels = pl.tools.listify(labels)
+        labels = wit.tools.listify(labels)
         if label is None:
             if len(labels) == 0:
                 raise AssertionError('No label provided: {}... {}'.format(
@@ -124,7 +124,7 @@ class label(data):
 
         if transform_slice is not None:
             assert isinstance(transform_slice, slice)
-            size = len(pl.logic.tbsl(size=self.size)[transform_slice])
+            size = len(wit.logic.tbsl(size=self.size)[transform_slice])
 
         value = label_castvalue(value, size)
         size = len(value)
@@ -138,9 +138,9 @@ class label(data):
             if self.last > self.size:
                 oversized_label_collection = ('Oversized label collection: '
                     + 'need {}, only {} provided'.format(self.last, self.size))
-                pl.error.warn(oversized_label_collection)
+                wit.error.warn(oversized_label_collection)
         else:
-            assert size == len(pl.logic.tbsl(size=self.size)[transform_slice])
+            assert size == len(wit.logic.tbsl(size=self.size)[transform_slice])
 
         if inverse_op == 'by_trust':
             inverse_op = lambda x, y: np.average(np.abs(x.trust - y.trust))
@@ -170,7 +170,7 @@ class label(data):
         if item is None:
             return None
 
-        _evidence = pl.fuzzy.evidence(
+        _evidence = wit.fuzzy.evidence(
             size=self.size, source=self.source, origin='label', label=label)
         _evidence.value[item.transform_slice] = item.value
         return _evidence
@@ -191,7 +191,7 @@ class label(data):
                     payload.value.invert()
             return payload
 
-        output = pl.table.foreach(tconv, state.remaining_data)
+        output = wit.table.foreach(tconv, state.remaining_data)
         if len(output) < 1:
             raise NoDataRefinedError
         else:
@@ -220,7 +220,7 @@ class label(data):
                     results.append(v)
             return results
 
-        output = pl.table.foreach(imatch, state.remaining_data)
+        output = wit.table.foreach(imatch, state.remaining_data)
         if len(output) < 1:
             raise NoDataRefinedError()
         else:

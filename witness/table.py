@@ -5,16 +5,16 @@ from __future__ import (absolute_import, division, print_function,
 import copy
 import sys
 
-import pylacode as pl
-import pylacode.refine
-import pylacode.tools
+import witness as wit
+import witness.refine
+import witness.tools
 
 assert sys.version_info >= (2, 7)
 
 def foreach(f, target):
     results = []
     for idx, e in zip(range(len(target) - 1, -1, -1), reversed(target)):
-        result = pl.tools.listify(f(e))
+        result = wit.tools.listify(f(e))
         if len(result) > 0:
             del target[idx]
             results += result
@@ -23,7 +23,7 @@ def foreach(f, target):
 class translation(object):
     def __init__(self, backends):
         self.table = self
-        self.backends = pl.tools.listify(backends)
+        self.backends = wit.tools.listify(backends)
         self.reset(oracle=True)
 
     def reset(self, oracle=False):
@@ -45,7 +45,7 @@ class translation(object):
         return len(self.pending_backends) < 1
 
     def prepare(self, payloads, inverse=False, reset=True, **mdata):
-        payloads = pl.tools.listify(payloads)
+        payloads = wit.tools.listify(payloads)
         if reset:
             self.reset()
 
@@ -67,7 +67,7 @@ class translation(object):
 
             self.backtrace.append(backend)
             return True
-        except pl.refine.NoDataRefinedError:
+        except wit.refine.NoDataRefinedError:
             pass
 
         return False
@@ -94,7 +94,7 @@ class translation(object):
                retain_history=False,
                reset=True,
                **mdata):
-        payloads = pl.tools.listify(payloads)
+        payloads = wit.tools.listify(payloads)
         self.prepare(payloads, inverse=inverse, reset=reset, **mdata)
         while self.iterate(retain_history=retain_history):
             pass

@@ -9,14 +9,14 @@ import random
 import sys
 import time
 
-import pylacode as pl
-import pylacode.error
-import pylacode.tools
-import pylacode.source
+import witness as wit
+import witness.error
+import witness.tools
+import witness.source
 
 assert sys.version_info >= (2, 7)
 
-logic_type = pl.logic.tbsl
+logic_type = wit.logic.tbsl
 
 _local_occuring_uid = 0
 
@@ -42,7 +42,7 @@ def create_uuid(source):
         src = bytes(str(source), 'utf8')
 
     s = uuid_magic
-    s += '-%x%x%02x' % pl.api_version
+    s += '-%x%x%02x' % wit.api_version
     s += '-' + uuid_session
     s += '-%08x' % _local_occuring_uid
     s += '-{}'.format(hashlib.sha224(src).hexdigest()[-6:])
@@ -69,8 +69,8 @@ class evidence:
                  **mdata):
 
         if source is None:
-            source = pl.source.default
-        assert pl.source.issource(source)
+            source = wit.source.default
+        assert wit.source.issource(source)
 
         if value is None:
             assert size is not None  # if value is None then size must be given
@@ -79,7 +79,7 @@ class evidence:
         else:
             self.value = logic_type(value)
             if size is not None:
-                pl.error.warn('Size given but ignored')
+                wit.error.warn('Size given but ignored')
             self.size = len(value)
 
         global _local_occuring_uid
@@ -98,7 +98,7 @@ class evidence:
         if self.source == other.source:
             source = self.source
         else:
-            source = pl.source.merge_source(
+            source = wit.source.merge_source(
                 op=self.merge_operator, left=self.source, right=other.source)
 
         return evidence(
@@ -110,7 +110,7 @@ class evidence:
 def squash(*evidences):
     _evidences = []
     for e in evidences:
-        _evidences += pl.tools.listify(e)
+        _evidences += wit.tools.listify(e)
     evidences = _evidences
 
     base = evidences[0]

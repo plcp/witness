@@ -5,8 +5,8 @@ from __future__ import (absolute_import, division, print_function,
 import sys
 
 import numpy as np
-import pylacode as pl
-import pylacode.error
+import witness as wit
+import witness.error
 
 assert sys.version_info >= (2, 7)
 
@@ -75,14 +75,14 @@ class _base(object):
                 new_values.append(v)
 
             if size is not None:
-                pl.error.warn('Size given but ignored')
+                wit.error.warn('Size given but ignored')
 
             self.size = s
             self.value = tuple(new_values)
         elif other is not None:
             assert other.__class__ in types
             if size is not None:
-                pl.error.warn('Size given but ignored')
+                wit.error.warn('Size given but ignored')
 
             self.size = len(other)
             self.value = other.cast_to(self.__class__).value
@@ -216,7 +216,7 @@ class _base(object):
             raise AssertionError('Expecting scalar, numpy.ndarray' +
                                  ' or *bsl')
 
-        return self.__imul__(pl.error.try_inverse(_trust))
+        return self.__imul__(wit.error.try_inverse(_trust))
 
     def set_value(self, new_value, _slice=slice(None)):
         if islogic(new_value):
@@ -340,7 +340,7 @@ class obsl(_base):
         if prior is None:
             prior = ebsl_prior
 
-        norm = pl.error.try_inverse(self.uncertainty)
+        norm = wit.error.try_inverse(self.uncertainty)
         return prior * norm
 
     def __iadd__(self, other, prior=None):
@@ -351,7 +351,7 @@ class obsl(_base):
         if not isinstance(other, self.__class__):
             other = other.cast_to(self.__class__)
 
-        norm = pl.error.try_inverse(0. + self.uncertainty + other.uncertainty -
+        norm = wit.error.try_inverse(0. + self.uncertainty + other.uncertainty -
                                     self.uncertainty * other.uncertainty)
 
         _belief = (
@@ -365,8 +365,8 @@ class obsl(_base):
         o_weight = other.w(prior) - prior
 
         _apriori = None
-        norm = pl.error.try_inverse(s_weight + o_weight)
-        if pl.error.last_warning is None:
+        norm = wit.error.try_inverse(s_weight + o_weight)
+        if wit.error.last_warning is None:
             _apriori = self.apriori * s_weight + other.apriori * o_weight
             _apriori *= norm
         else:
@@ -406,7 +406,7 @@ class obsl(_base):
         _belief = other * self.belief
         _disbelief = other * self.disbelief
 
-        norm = pl.error.try_inverse(_belief + _disbelief + self.uncertainty)
+        norm = wit.error.try_inverse(_belief + _disbelief + self.uncertainty)
         _belief *= norm
         _disbelief *= norm
         _uncertainty = self.uncertainty * norm
@@ -422,7 +422,7 @@ class obsl(_base):
         _disbelief = (1. - self.disbelief) * (other.disbelief - 1.) + 1.
         _apriori = self.apriori * other.apriori
 
-        norm = pl.error.try_inverse(1. - _apriori)
+        norm = wit.error.try_inverse(1. - _apriori)
         spare_lrate = (1. - self.apriori) * norm
         spare_rrate = (1. - other.apriori) * norm
 
@@ -442,7 +442,7 @@ class obsl(_base):
         _belief = (1. - self.belief) * (other.belief - 1.) + 1.
         _apriori = (1. - self.apriori) * (other.apriori - 1.) + 1.
 
-        norm = pl.error.try_inverse(_apriori)
+        norm = wit.error.try_inverse(_apriori)
         spare_lrate = self.apriori * norm
         spare_rrate = other.apriori * norm
 
@@ -557,7 +557,7 @@ class tbsl(_base):
         if prior is None:
             prior = ebsl_prior
 
-        norm = pl.error.try_inverse(1. - self.confidence)
+        norm = wit.error.try_inverse(1. - self.confidence)
         return prior * norm
 
     def __iadd__(self, other, prior=None):
@@ -607,7 +607,7 @@ class tbsl(_base):
         _truth = self.truth * other
         _confidence = self.confidence * other
 
-        norm = pl.error.try_inverse(1.0 + self.confidence * (other - 1))
+        norm = wit.error.try_inverse(1.0 + self.confidence * (other - 1))
         _truth *= norm
         _confidence *= norm
 
@@ -620,7 +620,7 @@ class tbsl(_base):
             other = other.cast_to(self.__class__)
         _apriori = (1. + self.apriori) * (1. + other.apriori) / 2. - 1.
 
-        norm = pl.error.try_inverse(1. - _apriori)
+        norm = wit.error.try_inverse(1. - _apriori)
         spare_lrate = (1. - self.apriori) * norm
         spare_rrate = (1. - other.apriori) * norm
 
@@ -645,7 +645,7 @@ class tbsl(_base):
 
         _apriori = (1. - self.apriori) * (other.apriori - 1.) / 2. + 1.
 
-        norm = pl.error.try_inverse(1. + _apriori)
+        norm = wit.error.try_inverse(1. + _apriori)
         spare_lrate = (1 + self.apriori) * norm
         spare_rrate = (1 + other.apriori) * norm
 
@@ -789,8 +789,8 @@ class ebsl(_base):
         o_weight = other.w(prior) - prior
 
         _apriori = None
-        norm = pl.error.try_inverse(s_weight + o_weight)
-        if pl.error.last_warning is None:
+        norm = wit.error.try_inverse(s_weight + o_weight)
+        if wit.error.last_warning is None:
             _apriori = self.apriori * s_weight + other.apriori * o_weight
             _apriori *= norm
         else:

@@ -6,9 +6,9 @@ import sys
 import warnings
 
 import numpy as np
-import pylacode as pl
-import pylacode.logic
-import pylacode.refine
+import witness as wit
+import witness.logic
+import witness.refine
 
 assert sys.version_info >= (2, 7)
 
@@ -18,9 +18,9 @@ def run():
 
     # test exception
     try:
-        raise pl.refine.NoDataRefinedError
+        raise wit.refine.NoDataRefinedError
         assert False
-    except pl.refine.NoDataRefinedError:
+    except wit.refine.NoDataRefinedError:
         assert True
 
     # construct a data refining backend
@@ -32,7 +32,7 @@ def run():
     def xinc(state, parent):
         x.v += state + len(parent.mdata['some']) / 100.
 
-    rd = pl.refine.data('paul', xinc, xinc, some='thing')
+    rd = wit.refine.data('paul', xinc, xinc, some='thing')
     assert rd.name == 'paul'
     assert rd.mdata['some'] == 'thing'
     assert rd._transform == rd._inverse == xinc
@@ -47,7 +47,7 @@ def run():
     assert x.v == 4.08
 
     # check warning & repr
-    re = pl.refine.data('more', None, None)
+    re = wit.refine.data('more', None, None)
     with warnings.catch_warnings(record=True) as w:
         m = ('No inverse function provided while refining ' +
              'data with "more" backend ' +
@@ -56,12 +56,12 @@ def run():
         try:
             re.inverse(3)
             assert False
-        except pl.refine.NoDataRefinedError:
+        except wit.refine.NoDataRefinedError:
             assert True
         assert m in str(w[0].message).replace('\n', ' ')
 
     # construct a label collection
-    lc = pl.refine.label('again', 21)
+    lc = wit.refine.label('again', 21)
     assert 'again' + object.__repr__(lc) == repr(lc)
     assert repr(lc.source) == 'label<again>()'
     assert lc.size == 21
@@ -75,8 +75,8 @@ def run():
         dict(label='ever', value=[True, False, False]),
         dict(label='still', value=np.bool_(False)),
         dict(label='there', value=[np.bool_(True), np.bool_(False)]),
-        dict(label='more', value=pl.logic.tbsl.true(4)),
-        dict(label='again', value=pl.logic.ebsl.uniform(7)),
+        dict(label='more', value=wit.logic.tbsl.true(4)),
+        dict(label='again', value=wit.logic.ebsl.uniform(7)),
         dict(label='exotic', transform_slice=slice(3, None, 3)),
     ])
 

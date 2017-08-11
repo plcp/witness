@@ -9,10 +9,10 @@ import random
 import sys
 import time
 
-import pylacode as pl
-import pylacode.fuzzy
-import pylacode.logic
-import pylacode.source
+import witness as wit
+import witness.fuzzy
+import witness.logic
+import witness.source
 
 assert sys.version_info >= (2, 7)
 
@@ -21,26 +21,26 @@ assert sys.version_info >= (2, 7)
 def run():
 
     # save the « local uid »
-    local_uid = int(pl.fuzzy._local_occuring_uid)
+    local_uid = int(wit.fuzzy._local_occuring_uid)
 
     # check the consistency of each uuid field (see below)
-    fake_source = pl.source.named_source(random.uniform(0, 1).hex())
-    uuid_tcheck = pl.fuzzy.create_uuid(fake_source)
+    fake_source = wit.source.named_source(random.uniform(0, 1).hex())
+    uuid_tcheck = wit.fuzzy.create_uuid(fake_source)
 
     # check if the « local uid » was increased
-    assert local_uid + 1 == pl.fuzzy._local_occuring_uid
+    assert local_uid + 1 == wit.fuzzy._local_occuring_uid
 
     # check if the uuid's first field is magic
-    assert uuid_tcheck.startswith(pl.fuzzy.uuid_magic)
-    uuid_ncheck = uuid_tcheck[len(pl.fuzzy.uuid_magic) + 1:]
+    assert uuid_tcheck.startswith(wit.fuzzy.uuid_magic)
+    uuid_ncheck = uuid_tcheck[len(wit.fuzzy.uuid_magic) + 1:]
 
     # check if the uuid's second field is the correct api version
-    assert uuid_ncheck.startswith('%x%x%02x' % pl.api_version)
+    assert uuid_ncheck.startswith('%x%x%02x' % wit.api_version)
     uuid_ncheck = uuid_ncheck[5:]
 
     # check if the uuid's third field is equal to the « session » token
-    assert uuid_ncheck.startswith(pl.fuzzy.uuid_session)
-    uuid_ncheck = uuid_ncheck[len(pl.fuzzy.uuid_session) + 1:]
+    assert uuid_ncheck.startswith(wit.fuzzy.uuid_session)
+    uuid_ncheck = uuid_ncheck[len(wit.fuzzy.uuid_session) + 1:]
 
     # check if the uuid's fourth field is equal to current « local uid »
     assert int(uuid_ncheck[:8], 16) == local_uid
@@ -70,14 +70,14 @@ def run():
     assert int(uuid_ncheck[6:], 16) == crc
 
     # test by-size evidence constructor & metadata storage
-    e = pl.fuzzy.evidence(size=37, some_meta='data')
-    assert isinstance(e.value, pl.logic.tbsl)
-    assert pl.logic.obsl(size=37) == e.value
+    e = wit.fuzzy.evidence(size=37, some_meta='data')
+    assert isinstance(e.value, wit.logic.tbsl)
+    assert wit.logic.obsl(size=37) == e.value
     assert e.mdata['some_meta'] == 'data'
 
     # test by-value evidence constructor
-    x = pl.fuzzy.evidence(value=pl.logic.ebsl.uniform(37))
-    y = pl.fuzzy.evidence(value=pl.logic.obsl.uniform(37))
+    x = wit.fuzzy.evidence(value=wit.logic.ebsl.uniform(37))
+    y = wit.fuzzy.evidence(value=wit.logic.obsl.uniform(37))
     assert x.size == y.size == e.size == len(x.value + y.value + e.value)
 
     # test value type coherence

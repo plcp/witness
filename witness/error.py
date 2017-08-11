@@ -7,7 +7,7 @@ import traceback
 import warnings
 
 import numpy as np
-import pylacode as pl
+import witness as wit
 
 assert sys.version_info >= (2, 7)
 
@@ -19,7 +19,7 @@ _stable_warntext = ('Numerically unstable calculus suppressed ' +
                     '(obtained values may not be meaningful).')
 _unrecov_failure = (
     'Unrecoverable failure during numerical instability ' + 'handling ' +
-    '(likely to be caused by NaN values, see `pylacode.error.state`).')
+    '(likely to be caused by NaN values, see `witness.error.state`).')
 
 last_warning = None
 

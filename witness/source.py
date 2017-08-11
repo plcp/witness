@@ -5,8 +5,8 @@ from __future__ import (absolute_import, division, print_function,
 import collections
 import sys
 
-import pylacode as pl
-import pylacode.tools
+import witness as wit
+import witness.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -56,14 +56,14 @@ class _base_source(object):
     def __str__(self):
         s = self.name
         if self._genericity is not None:
-            s += '<{}>'.format(pl.tools.to_str(self._genericity, _base_source))
+            s += '<{}>'.format(wit.tools.to_str(self._genericity, _base_source))
 
         if len(self._attributes) < 1:
             s += '()'
         else:
             _attr = []
             for key, value in self._attributes.items():
-                _attr.append(key + '=' + pl.tools.to_str(value, _base_source))
+                _attr.append(key + '=' + wit.tools.to_str(value, _base_source))
             s += '({})'.format(','.join(_attr))
         return s
 

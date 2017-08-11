@@ -5,8 +5,8 @@ from __future__ import (absolute_import, division, print_function,
 import random
 import sys
 
-import pylacode as pl
-import pylacode.source
+import witness as wit
+import witness.source
 
 assert sys.version_info >= (2, 7)
 
@@ -15,34 +15,34 @@ assert sys.version_info >= (2, 7)
 def run():
 
     # check the default source
-    assert pl.source.default.name == 'default'
-    assert pl.source.issource(pl.source.default)
-    assert isinstance(pl.source.default, pl.source.default_source)
+    assert wit.source.default.name == 'default'
+    assert wit.source.issource(wit.source.default)
+    assert isinstance(wit.source.default, wit.source.default_source)
 
     # construct named sources
-    x = pl.source.named_source(name='what', other_metadata='some')
-    y = pl.source.named_source(
+    x = wit.source.named_source(name='what', other_metadata='some')
+    y = wit.source.named_source(
         name='whom', other_metadata='some', more='again')
     assert y.more == 'again'
     assert x.name == 'what' and y.name == 'whom'
     assert x.other_metadata == 'some' and y.other_metadata
 
     # test issource
-    assert pl.source.issource(x) and pl.source.issource(y)
-    assert not pl.source.issource(x.name) and not pl.source.issource(y.more)
+    assert wit.source.issource(x) and wit.source.issource(y)
+    assert not wit.source.issource(x.name) and not wit.source.issource(y.more)
 
     # check __str__
     assert str(x) == 'what(other_metadata=some)'
     assert str(y) == 'whom(more=again,other_metadata=some)'
 
     # check equality
-    z = pl.source.named_source(name='what', other_metadata='some')
+    z = wit.source.named_source(name='what', other_metadata='some')
     assert x == z
     assert not (x == y or z == y)
 
     # construct merged sources
-    a = pl.source.merge_source(op='concat', left=x, right=y)
-    b = pl.source.merge_source(op='concat', right=x, left=x)
+    a = wit.source.merge_source(op='concat', left=x, right=y)
+    b = wit.source.merge_source(op='concat', right=x, left=x)
 
     # test property setter
     assert b.right == x
@@ -54,8 +54,8 @@ def run():
     bdict = dict(random.sample(b.dict().items(), len(b.dict())))
 
     # construct pathological merged sources
-    c = pl.source.merge_source(op=z, again=(b, a), nope=adict)
-    e = pl.source.merge_source(op=x, again=(a, b), nope=bdict)
+    c = wit.source.merge_source(op=z, again=(b, a), nope=adict)
+    e = wit.source.merge_source(op=x, again=(a, b), nope=bdict)
 
     # check repr & dict-ordering-sensitive determinism
     strab = ('merge<concat>(left=what(other_metadata=some),' +

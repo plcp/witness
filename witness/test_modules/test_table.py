@@ -6,12 +6,12 @@ import sys
 import warnings
 
 import numpy as np
-import pylacode as pl
-import pylacode.logic
-import pylacode.table
-import pylacode.error
-import pylacode.fuzzy
-import pylacode.refine
+import witness as wit
+import witness.logic
+import witness.table
+import witness.error
+import witness.fuzzy
+import witness.refine
 
 assert sys.version_info >= (2, 7)
 
@@ -20,15 +20,15 @@ def _eq(a, b):
     return np.allclose(
         a,
         b,
-        rtol=pl.logic.eq_rtol,
-        atol=pl.logic.eq_atol,
-        equal_nan=pl.logic.eq_nan)
+        rtol=wit.logic.eq_rtol,
+        atol=wit.logic.eq_atol,
+        equal_nan=wit.logic.eq_nan)
 
 # run tests
 def run():
 
     # first, create a label refining backend
-    labels = pl.refine.label('main', 5)
+    labels = wit.refine.label('main', 5)
     labels.add([
         dict(label='first'),
         dict(label='second'),
@@ -43,7 +43,7 @@ def run():
     ])
 
     # then, create a translation table using our label refining label backend
-    table = pl.table.translation(labels)
+    table = wit.table.translation(labels)
 
     # translate semantic textual labels in abstract representation
     assert _eq(table.digest('first')[0].value.trust, [2, 0, 0, 0, 0])
@@ -64,8 +64,8 @@ def run():
     assert _eq(results[1].value.trust, [0, 0, 2, 0, 0])
     assert _eq(results[0].value.trust, [0, 0, 0, 0, 2])
 
-    pl.error.state.quiet = True
-    v = pl.fuzzy.squash(results)
+    wit.error.state.quiet = True
+    v = wit.fuzzy.squash(results)
     assert _eq(v.value.trust, [2, 0, 2, 0, 2])
 
     inversed = table.digest(v, inverse=True)
@@ -75,7 +75,7 @@ def run():
     assert 'odd' in inversed
     assert len(inversed) == 4
 
-    v = pl.fuzzy.squash(v, table.digest('even_only'))
+    v = wit.fuzzy.squash(v, table.digest('even_only'))
     inversed = table.digest(v, inverse=True)
     assert 'second' in inversed
     assert 'fourth' in inversed

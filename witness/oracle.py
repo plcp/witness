@@ -4,10 +4,10 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
-import pylacode as pl
-import pylacode.fuzzy
-import pylacode.table
-import pylacode.tools
+import witness as wit
+import witness.fuzzy
+import witness.table
+import witness.tools
 
 assert sys.version_info >= (2, 7)
 
@@ -36,14 +36,14 @@ class oracle(object):
         self.reset(backend=True)
 
     def add_table(self, tables):
-        tables = pl.tools.listify(tables)
+        tables = wit.tools.listify(tables)
         for table in tables:
             table.reset(oracle=True)
             table.oracle = self
             self.tables.append(table)
 
     def add_label(self, labels):
-        labels = pl.tools.listify(labels)
+        labels = wit.tools.listify(labels)
         for label in labels:
             label.reset(oracle=True)
             label.oracle = self
@@ -56,7 +56,7 @@ class oracle(object):
         self.labels = []
 
     def digest_data(self, payloads, inverse=False):
-        payloads = pl.tools.listify(payloads)
+        payloads = wit.tools.listify(payloads)
         _output = []
         for table in self.tables:
             table.digest(payloads, inverse=inverse)
@@ -64,7 +64,7 @@ class oracle(object):
         return _output
 
     def digest_label(self, labels, inverse=False):
-        labels = pl.tools.listify(labels)
+        labels = wit.tools.listify(labels)
         _output = []
         for table in self.tables:
             table.digest(labels, inverse=inverse)
@@ -72,10 +72,10 @@ class oracle(object):
         return _output
 
     def digest(self, various, inverse=False, try_data=False):
-        various = pl.tools.listify(various)
+        various = wit.tools.listify(various)
         _outputs = []
         for v in various:
-            if isinstance(v, pl.fuzzy.evidence):
+            if isinstance(v, wit.fuzzy.evidence):
                 _outputs.append(v)
                 continue
 
@@ -103,7 +103,7 @@ class oracle(object):
         self.submit(self.digest_label(labels))
 
     def learn(self, answers, history=None, try_data=False):
-        answers = pl.tools.listify(answers)
+        answers = wit.tools.listify(answers)
         _answers = self.digest(answers, try_data=try_data)
         _history = None
         if history is not None:
@@ -111,7 +111,7 @@ class oracle(object):
         self.backend.learn(_answers, history=_history)
 
     def query(self, queries, inverse_answer=True, try_data=False):
-        queries = pl.tools.listify(queries)
+        queries = wit.tools.listify(queries)
         _queries = self.digest(queries, try_data=try_data)
         _answers = self.backend.query(_queries)
         if inverse_answer:
