@@ -11,4 +11,5 @@ setup(
     author='plcp',
     author_email='matthieu@daumas.me',
     url='https://github.com/plcp/witness',
-    download_url='https://github.com/plcp/witness/archive/0.0.4.zip', )
+    download_url='https://github.com/plcp/witness/archive/0.0.4.zip',
+    install_requires=['numpy'], )
