@@ -12,6 +12,11 @@ Knowledge abstraction layer, provides automation for:
 Please note `numpy` is required as dependency :
 ```sh
 pip install numpy
+pip install witness
+```
+
+You can also use the repository:
+```sh
 git clone https://github.com/plcp/witness
 cd witness
 python -i example.py
