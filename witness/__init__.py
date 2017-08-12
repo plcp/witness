@@ -9,7 +9,7 @@ import witness as wit
 assert sys.version_info >= (2, 7)
 
 # api version
-api_version = (0, 0, 2)
+api_version = (0, 0, 4)
 
 
 # test class
