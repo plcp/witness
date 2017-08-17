@@ -32,6 +32,7 @@ class naive(wit.oracle.backend):
             if e.size > self.size:
                 self.size = e.size
                 self.reset(keep_history=True)
+            wit.fuzzy.scale(self.history)
             self.history <<= e
 
     def query(self, evidences):

@@ -12,6 +12,8 @@ assert sys.version_info >= (2, 7)
 def listify(target):
     if target is None:
         return []
+    if isinstance(target, tuple):
+        return list(target)
     if isinstance(target, list):
         return target
     return [target]

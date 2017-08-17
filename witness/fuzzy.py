@@ -128,3 +128,15 @@ def squash(*evidences):
     for e in evidences[1:]:
         base <<= e
     return base
+
+
+def scale(*evidences):
+    evidences = wit.tools.listify(evidences)
+    for e in evidences:
+        v = e.value;
+
+        w = v.inert_weight()
+        s = (v.weight > w)
+        v[s] = v[s] / 2
+
+        e.value = v
