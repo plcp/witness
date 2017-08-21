@@ -4,9 +4,23 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
-from witness.hell import handle_unicode, is_string
 
 assert sys.version_info >= (2, 7)
+
+
+def handle_unicode(payload):
+    if sys.version_info < (3, ) and isinstance(payload, str):
+        return unicode(payload)
+    else:
+        return payload
+
+
+def is_string(payload):
+    payload = handle_unicode(payload)
+    if sys.version_info < (3, ):
+        return isinstance(payload, unicode)
+    else:
+        return isinstance(payload, str)
 
 
 def listify(target):
