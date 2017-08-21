@@ -18,8 +18,6 @@ from __future__ import (absolute_import, division, print_function,
 
 import sys
 
-import witness as wit
-
 assert sys.version_info >= (2, 7)
 
 # api version
