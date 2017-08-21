@@ -9,7 +9,7 @@ import witness
 
 assert sys.version_info >= (2, 7)
 
-test_list = ['logic', 'source', 'fuzzy', 'refine', 'table']
+test_list = ['logic', 'source', 'fuzzy', 'refine', 'table', 'weather']
 
 
 def load_tests(loader, tests, pattern):
