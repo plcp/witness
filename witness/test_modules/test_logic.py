@@ -6,6 +6,7 @@ import inspect
 import random
 import sys
 import traceback
+import unittest
 import warnings
 
 import numpy as np
@@ -33,157 +34,166 @@ def _similar(a, b):
         equal_nan=wit.logic.eq_nan)
 
 
-# run tests
-def run():
-    # test without infinity-semantics (cause NaNs)
-    wit.error.state.inverse_inf = False
+# TOFIX: restructure tests code in a unittest-friendly fashion
+class test_case(unittest.TestCase):
 
-    # test basic constructor
-    for vtype in test_types:
-        vtype(size=5)
+    # run tests
+    def test_logic(self):
 
-    # test from-instance constructor
-    for vtype in test_types:
-        x = vtype(size=3)
-        y = vtype(x)
+        # test without infinity-semantics (cause NaNs)
+        wit.error.state.inverse_inf = False
 
-        assert x.value is not y.value
-        for vx, vy in zip(x.value, y.value):
-            assert _similar(vx, vy)
-            assert vx is not vy
+        # test basic constructor
+        for vtype in test_types:
+            vtype(size=5)
 
-    # test islogic
-    for vtype in test_types:
-        x = vtype(size=5)
-        assert wit.logic.islogic(x)
-        assert not wit.logic.islogic(x.value)
+        # test from-instance constructor
+        for vtype in test_types:
+            x = vtype(size=3)
+            y = vtype(x)
 
-    # test by-name getters and setters of internal value
-    for vtype in test_types:
-        x = vtype(size=7)
-        for i, name in enumerate(vtype.value_names):
-            assert getattr(x, name) is x.value[i]
+            self.assertTrue(x.value is not y.value)
+            for vx, vy in zip(x.value, y.value):
+                self.assertTrue(_similar(vx, vy))
+                self.assertTrue(vx is not vy)
 
-            n = np.ones(7)
-            setattr(x, name, n)
-            assert n is x.value[i]
+        # test islogic
+        for vtype in test_types:
+            x = vtype(size=5)
+            self.assertTrue(wit.logic.islogic(x))
+            self.assertTrue(not wit.logic.islogic(x.value))
 
-    # test by-tuple constructor
-    for vtype in test_types:
-        n = [np.ones(4) for _ in range(0, len(vtype.value_names))]
-        x = vtype(tuple(n))
-        for a, b in zip(x.value, n):
-            assert a is b
+        # test by-name getters and setters of internal value
+        for vtype in test_types:
+            x = vtype(size=7)
+            for i, name in enumerate(vtype.value_names):
+                self.assertTrue(getattr(x, name) is x.value[i])
 
-    # test by-value constructor
-    for vtype in test_types:
-        n = [np.random.rand() for _ in range(0, len(vtype.value_names))]
-        x = vtype(tuple(n))
-        for a, b in zip(x.value, n):
-            assert len(a) == 1
-            assert a[0] == b
+                n = np.ones(7)
+                setattr(x, name, n)
+                self.assertTrue(n is x.value[i])
 
-    # test back-forth cast consistency (« AtoB(BtoA(b)) == b »)
-    for stype in test_types:
-        x = stype.uniform(6)
-        for dtype in test_types:
-            n = x.cast_to(dtype)
-            v = n.cast_to(stype)
-            assert isinstance(v, stype) and isinstance(n, dtype)
-            assert (x == v) and (x.equals(n))
+        # test by-tuple constructor
+        for vtype in test_types:
+            n = [np.ones(4) for _ in range(0, len(vtype.value_names))]
+            x = vtype(tuple(n))
+            for a, b in zip(x.value, n):
+                self.assertTrue(a is b)
 
-    # test double-invert consistency
-    for vtype in test_types:
-        x = vtype.uniform(3)
-        assert (x == (~x).invert()) and (~x == ~(~x).invert())
+        # test by-value constructor
+        for vtype in test_types:
+            n = [np.random.rand() for _ in range(0, len(vtype.value_names))]
+            x = vtype(tuple(n))
+            for a, b in zip(x.value, n):
+                self.assertTrue(len(a) == 1)
+                self.assertTrue(a[0] == b)
 
-    # test getitem & setitem
-    for vtype in test_types:
-        x = vtype(vtype.true(size=5))
+        # test back-forth cast consistency (« AtoB(BtoA(b)) == b »)
+        for stype in test_types:
+            x = stype.uniform(6)
+            for dtype in test_types:
+                n = x.cast_to(dtype)
+                v = n.cast_to(stype)
+                self.assertTrue(isinstance(v, stype) and isinstance(n, dtype))
+                self.assertTrue((x == v) and (x.equals(n)))
 
-        x[2:4] = ~x[2:4]
-        x[::2] = ~x[::2]
+        # test double-invert consistency
+        for vtype in test_types:
+            x = vtype.uniform(3)
+            self.assertTrue((x == (~x).invert()) and (~x == ~(~x).invert()))
 
-        assert x[0] == vtype(vtype.false())
-        assert x[1] == vtype(vtype.true())
-        assert x[2] == vtype(vtype.true())
-        assert x[3] == vtype(vtype.false())
-        assert x[4] == vtype(vtype.false())
+        # test getitem & setitem
+        for vtype in test_types:
+            x = vtype(vtype.true(size=5))
 
-        y = vtype(vtype.false(size=5))
-        x[1:3] = y[0:2]
+            x[2:4] = ~x[2:4]
+            x[::2] = ~x[::2]
 
-        assert x == y
+            self.assertTrue(x[0] == vtype(vtype.false()))
+            self.assertTrue(x[1] == vtype(vtype.true()))
+            self.assertTrue(x[2] == vtype(vtype.true()))
+            self.assertTrue(x[3] == vtype(vtype.false()))
+            self.assertTrue(x[4] == vtype(vtype.false()))
 
-    # test if « p(A) + p(!A) == 1 »
-    for vtype in test_types:
-        x = vtype.uniform(11)
-        y = ~x
-        assert _similar(x.p() + y.p(), np.ones_like(x.p()))
+            y = vtype(vtype.false(size=5))
+            x[1:3] = y[0:2]
 
-    # test if trust factor is linear uppon consensus
-    for vtype in test_types:
-        x = vtype.uniform(47)
-        y = vtype.uniform(47)
-        assert _similar(x.trust + y.trust, (x + y).trust)
+            self.assertTrue(x == y)
 
-    # test various properties of and & or
-    for vtype in test_types:
-        x = vtype.uniform(101)
-        y = vtype.uniform(101)
-        assert ~(~x | ~y) == x & y
-        assert ~(~x & ~y) == x | y
+        # test if « p(A) + p(!A) == 1 »
+        for vtype in test_types:
+            x = vtype.uniform(11)
+            y = ~x
+            self.assertTrue(_similar(x.p() + y.p(), np.ones_like(x.p())))
 
-        minxp = np.minimum(x.p(), (~x).p())
-        maxxp = np.maximum(x.p(), (~x).p())
-        assert (minxp > (x & ~x).p()).all()
-        assert (maxxp < (x | ~x).p()).all()
+        # test if trust factor is linear uppon consensus
+        for vtype in test_types:
+            x = vtype.uniform(47)
+            y = vtype.uniform(47)
+            self.assertTrue(_similar(x.trust + y.trust, (x + y).trust))
+
+        # test various properties of and & or
+        for vtype in test_types:
+            x = vtype.uniform(101)
+            y = vtype.uniform(101)
+            self.assertTrue(~(~x | ~y) == x & y)
+            self.assertTrue(~(~x & ~y) == x | y)
+
+            minxp = np.minimum(x.p(), (~x).p())
+            maxxp = np.maximum(x.p(), (~x).p())
+            self.assertTrue((minxp > (x & ~x).p()).all())
+            self.assertTrue((maxxp < (x | ~x).p()).all())
 
     # test numerically unstable assertions
-    _success = False
-    failures = []
-    for j in range(0, 24):
-        with warnings.catch_warnings(record=True) as w:
-            warnings.simplefilter('always')
+    def test_logic_unstable(self):
 
-            try:
-                _unstable_tests()
-                _success = True
-            except AssertionError as e:
-                e.exc_info = sys.exc_info()
-                failures.append(e)
+        # try until success, fails if no warning raised at the right time
+        _success = False
+        failures = []
+        for j in range(0, 24):
+            with warnings.catch_warnings(record=True) as w:
+                warnings.simplefilter('always')
 
-                _warns = []
-                for i in range(0, len(w)):
-                    _wi = None
-                    if sys.version_info < (3, ):
-                        _wi = str(w[i].message)
-                    else:
-                        _wi = str(w[i])
+                try:
+                    _unstable_tests()
+                    _success = True
+                except AssertionError as e:
+                    e.exc_info = sys.exc_info()
+                    failures.append(e)
 
-                    if wit.error._stable_warntext in _wi.replace('\n', ' '):
-                        _warns.append(w[i])
+                    _warns = []
+                    for i in range(0, len(w)):
+                        _wi = None
+                        if sys.version_info < (3, ):
+                            _wi = str(w[i].message)
+                        else:
+                            _wi = str(w[i])
 
-                if len(_warns) < 1:
-                    traceback.print_exception(*e.exc_info)
-                    raise AssertionError('No warning raised when ' +
-                                         'assertion failed: {}, {} '.format(
-                                             str(w), e))
-        if _success:
-            break
+                        if wit.error._stable_warntext in _wi.replace(
+                                '\n', ' '):
+                            _warns.append(w[i])
 
-    # raise an AssertionError if we fail to converge
-    if not _success:
-        for e in failures:
-            traceback.print_exception(*e.exc_info)
-        raise AssertionError('Numerically unstable operations failed ' +
-                             '{} times in a row'.format(j + 1))
+                    if len(_warns) < 1:
+                        traceback.print_exception(*e.exc_info)
+                        self.fail('No warning raised when ' +
+                                  'assertion failed: {}, {} '.format(
+                                      str(w), e))
+            if _success:
+                break
+
+        # raise an AssertionError if we fail to converge
+        if not _success:
+            for e in failures:
+                traceback.print_exception(*e.exc_info)
+            self.fail('Numerically unstable operations failed ' +
+                      '{} times in a row'.format(j + 1))
 
     # test operators equivalence between representations
-    for op in test_ops:
-        assert _check_op(op)
+    def test_logic_operators(self):
 
-    return True
+        # (further details printed within)
+        for op in test_ops:
+            self.assertTrue(_check_op(op))
 
 
 def _unstable_tests():
@@ -296,7 +306,8 @@ def _check_op_forall(op_name, values):
                         ]
                     else:
                         differ = abs(obt - exp)
-                        rerror = wit.logic.eq_atol + wit.logic.eq_rtol * abs(exp)
+                        rerror = wit.logic.eq_atol + wit.logic.eq_rtol * abs(
+                            exp)
 
                 except BaseException as e:
                     differ = 'Unavailable: {}'.format(e)
@@ -338,3 +349,7 @@ def _check_op(op_name):
         assert _check_op_forall(op_name, args)
 
     return True
+
+
+if __name__ == '__main__':
+    unittest.main()
