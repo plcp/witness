@@ -42,7 +42,7 @@ def _eq(a, b):
 
 
 # TOFIX: restructure tests code in a unittest-friendly fashion
-class test_case(unittest.TestCase):
+class test_table(unittest.TestCase):
 
     # run tests
     def test_table(self):

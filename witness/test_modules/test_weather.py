@@ -41,7 +41,7 @@ def build_weather_labels():
 weather_labels = build_weather_labels()
 
 # TOFIX: restructure tests code in a unittest-friendly fashion
-class test_case(unittest.TestCase):
+class test_weather(unittest.TestCase):
 
     # run tests
     def test_weather(self):

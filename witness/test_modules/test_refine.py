@@ -29,7 +29,7 @@ assert sys.version_info >= (2, 7)
 
 
 # TOFIX: restructure tests code in a unittest-friendly fashion
-class test_case(unittest.TestCase):
+class test_refine(unittest.TestCase):
 
     # run tests
     def test_refine(self):

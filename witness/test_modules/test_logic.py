@@ -49,7 +49,7 @@ def _similar(a, b):
 
 
 # TOFIX: restructure tests code in a unittest-friendly fashion
-class test_case(unittest.TestCase):
+class test_logic(unittest.TestCase):
 
     # run tests
     def test_logic(self):
