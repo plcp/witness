@@ -32,7 +32,27 @@ def reset_session():
 
 reset_session()
 
-
+# TOFIX: Choose the best suited UUID format (considering python's uuid RFC4122)
+#
+# We use an universal unique identifier to identify evidences in order to
+# enable further collection of serialized evidences in a long-lasting database
+# (ideally shared between multiple sessions and multiple instances).
+#
+# For now, we use a handmade 196b UUID made of these fields.
+#  - [12b] (magic)
+#  - [16b] API version
+#  - [24b] Session token
+#  - [32b] Unique identifier (within the session)
+#  - [24b] Source (of the information) hash
+#  - [32b] Time of creation
+#  - [24b+32b] 6 bytes of randomness + CRC32 of the previous 164b
+#
+# It may be *krm* quite over-engineered and expensive for the use and a regular
+# UUID (as provided by python's uuid and RFC4122) may be sufficient.
+#
+# Thus, it's subject to change when serialization and evidence tracking will be
+# added to the witness API (be warned).
+#
 def create_uuid(source):
     global _local_occuring_uid
 
