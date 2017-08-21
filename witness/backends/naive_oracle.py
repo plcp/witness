@@ -27,7 +27,7 @@ import witness.fuzzy
 assert sys.version_info >= (2, 7)
 
 
-class naive(wit.oracle.backend):
+class naive_oracle(wit.oracle.backend):
     def __init__(self, parent):
         self.parent = parent
         self.source = wit.source.oracle_source(name='naive')

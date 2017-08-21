@@ -201,20 +201,20 @@ class label(data):
     def transform(self, state):
         def tconv(label):
             # try with transform(label)
-            payload = self.transform_label(label)
+            evidence = self.transform_label(label)
 
             # then, try with !transform(label) (if label startswith !)
             # then, try with !transform(!label)
-            if payload is None:
+            if evidence is None:
                 if label.startswith('!'):
-                    payload = self.transform_label(label[1:])
-                if payload is None:
-                    payload = self.transform_label('!' + label)
-                if payload is not None:
-                    payload.value.invert()
-            return payload
+                    evidence = self.transform_label(label[1:])
+                if evidence is None:
+                    evidence = self.transform_label('!' + label)
+                if evidence is not None:
+                    evidence.value.invert()
+            return evidence
 
-        output = wit.table.foreach(tconv, state.remaining_data)
+        output = wit.table.foreach(tconv, state.remaining_input)
         if len(output) < 1:
             raise NoDataRefinedError
         else:
@@ -228,11 +228,11 @@ class label(data):
         if item is None:
             return None
 
-        payload_value = evidence.value[item.where]
-        if not item.size == len(payload_value):
+        evidence_value = evidence.value[item.where]
+        if not item.size == len(evidence_value):
             return None
 
-        if item.inverse_op(payload_value, item.value) > threshold:
+        if item.inverse_op(evidence_value, item.value) > threshold:
             return None
 
         return str(item.label)
@@ -246,7 +246,7 @@ class label(data):
                     results.append(v)
             return results
 
-        output = wit.table.foreach(imatch, state.remaining_data)
+        output = wit.table.foreach(imatch, state.remaining_input)
         if len(output) < 1:
             raise NoDataRefinedError()
         else:

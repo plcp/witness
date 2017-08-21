@@ -47,7 +47,7 @@ class test_weather(unittest.TestCase):
     def test_weather(self):
         wit.error.state.quiet = True
 
-        o = wit.oracle.new(wit.backends.naive)
+        o = wit.oracle.new(wit.backends.naive_oracle)
         o.add_labels(weather_labels)
 
         o.submit('cold')

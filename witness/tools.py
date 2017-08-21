@@ -22,19 +22,19 @@ import sys
 assert sys.version_info >= (2, 7)
 
 
-def handle_unicode(payload):
-    if sys.version_info < (3, ) and isinstance(payload, str):
-        return unicode(payload)
+def handle_unicode(_input):
+    if sys.version_info < (3, ) and isinstance(_input, str):
+        return unicode(_input)
     else:
-        return payload
+        return _input
 
 
-def is_string(payload):
-    payload = handle_unicode(payload)
+def is_string(_input):
+    _input = handle_unicode(_input)
     if sys.version_info < (3, ):
-        return isinstance(payload, unicode)
+        return isinstance(_input, unicode)
     else:
-        return isinstance(payload, str)
+        return isinstance(_input, str)
 
 
 def listify(target):

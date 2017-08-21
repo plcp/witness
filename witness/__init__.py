@@ -20,8 +20,8 @@ import sys
 
 assert sys.version_info >= (2, 7)
 
-# api version
-api_version = (0, 0, 4)
+# witness api version
+api_version = (0, 0, 5)
 
 
 # run tests

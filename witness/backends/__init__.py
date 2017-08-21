@@ -13,7 +13,7 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 ##
 
-import witness.backends.naive
+import witness.backends.naive_oracle
 
 # backends enabled by default
-from witness.backends.naive import naive
+from witness.backends.naive_oracle import naive_oracle

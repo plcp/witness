@@ -71,11 +71,11 @@ class oracle(object):
             self.tables = []
             self.labels = []
 
-    def digest_payloads(self, payloads, inverse=False):
-        payloads = wit.tools.listify(payloads)
+    def digest_data(self, _input, inverse=False):
+        _input = wit.tools.listify(_input)
         _output = []
         for table in self.tables:
-            _output += table.digest(payloads, inverse=inverse)
+            _output += table.digest(_input, inverse=inverse)
         return _output
 
     def digest_labels(self, labels, inverse=False):
@@ -100,7 +100,7 @@ class oracle(object):
                     continue
 
             if try_data:
-                _output = self.digest_payloads(v)
+                _output = self.digest_data(v)
                 if len(_output) > 0:
                     _outputs += _output
                     continue
@@ -110,8 +110,8 @@ class oracle(object):
     def submit(self, various):
         self.backend.submit(self.digest(various))
 
-    def submit_payloads(self, payloads):
-        self.submit(self.digest_payloads(payloads))
+    def submit_data(self, _input):
+        self.submit(self.digest_data(_input))
 
     def submit_labels(self, labels):
         self.submit(self.digest_labels(labels))

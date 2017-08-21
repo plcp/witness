@@ -49,7 +49,7 @@ class translation(object):
         self.backtrace = []
         self.active_backend = None
         self.previous_state = None
-        self.remaining_data = []
+        self.remaining_input = []
         self.pending_output = []
         self.pending_backends = []
 
@@ -60,14 +60,14 @@ class translation(object):
     def finished(self):
         return len(self.pending_backends) < 1
 
-    def prepare(self, payloads, inverse=False, reset=True, **mdata):
-        payloads = wit.tools.listify(payloads)
+    def prepare(self, _input, inverse=False, reset=True, **mdata):
+        _input = wit.tools.listify(_input)
         if reset:
             self.reset()
 
         self.mdata = dict(**mdata)
         self.inverse = inverse
-        self.remaining_data = list(payloads)
+        self.remaining_input = list(_input)
         self.pending_backends = list(self.backends)
 
     def apply(self, backend=None):
@@ -105,13 +105,13 @@ class translation(object):
         return True
 
     def digest(self,
-               payloads,
+               _input,
                inverse=False,
                retain_history=False,
                reset=True,
                **mdata):
-        payloads = wit.tools.listify(payloads)
-        self.prepare(payloads, inverse=inverse, reset=reset, **mdata)
+        _input = wit.tools.listify(_input)
+        self.prepare(_input, inverse=inverse, reset=reset, **mdata)
         while self.iterate(retain_history=retain_history):
             pass
         return self.finish()
