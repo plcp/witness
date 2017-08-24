@@ -13,8 +13,7 @@
 # @license GPL-3.0+ <http://spdx.org/licenses/GPL-3.0+>
 ##
 
-from __future__ import (absolute_import, division, print_function,
-                        unicode_literals, with_statement)
+from __future__ import (division, unicode_literals)
 
 import operator
 import sys
