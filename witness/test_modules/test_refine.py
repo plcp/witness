@@ -77,8 +77,8 @@ class test_refine(unittest.TestCase):
                 pass
             self.assertTrue(m in str(w[0].message).replace('\n', ' '))
 
-        # construct a label collection
-        lc = wit.refine.label('again', 21)
+        # test the textual labels backend
+        lc = wit.backends.labels('again', 21)
         self.assertTrue('again' + object.__repr__(lc) == repr(lc))
         self.assertTrue(repr(lc.source) == 'label<again>()')
         self.assertTrue(lc.size == 21)

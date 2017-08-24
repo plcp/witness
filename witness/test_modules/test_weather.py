@@ -21,7 +21,7 @@ import witness.boil # !! wit.error.state.quiet = True !!
 wit.error.state.quiet = False # (to avoid breaking other tests)
 
 def build_weather_labels():
-    w = wit.refine.label(name='weather', size=6)
+    w = wit.backends.labels(name='weather', size=6)
     w.add(label='warm', value=[True, False])
     w.add(label='cold', value=[False, True], where=slice(0, 2))
     w.add(label='temp', where=slice(0, 2))

@@ -14,6 +14,8 @@
 ##
 
 import witness.backends.naive_oracle
+import witness.backends.labels
 
 # backends enabled by default
 from witness.backends.naive_oracle import naive_oracle
+from witness.backends.labels import labels

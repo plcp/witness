@@ -47,7 +47,7 @@ class test_table(unittest.TestCase):
     def test_table(self):
 
         # first, create a label refining backend
-        labels = wit.refine.label('main', 5)
+        labels = wit.backends.labels('main', 5)
         labels.add([
             dict(label='first'),
             dict(label='second'),
