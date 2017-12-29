@@ -62,6 +62,7 @@ needed to provide more components for a seamless "plug and play" experience.
 
 # Development status
 
-Active, Work in progress.
+I do not intend to use this library and to my knowledge, no one does not intend
+to use it nor could benefit for it. If you disagree, please tell me!
 
-**API still subject to frequent backward-incompatible revisions.**
+**Discontinued, still provide extended support via github issues.**
